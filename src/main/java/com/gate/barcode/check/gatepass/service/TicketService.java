@@ -36,6 +36,9 @@ public class TicketService {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private CommonService commonService;
 
 	@Transactional
 	public Ticket generateBarcode(String uniqueID, String barCodePath, BarcodeCreationRequest barcodeCreationRequest) {
@@ -178,7 +181,7 @@ public class TicketService {
 	 */
 	@Transactional
 	public void assignTickets(Long userId, AssignTicketsRequest request) {
-		//check either admin or not and continue
+		commonService.checkUserType(userId);
 		for(Long i=request.getIdFrom();i<=request.getIdTo();i++) {
 			Ticket ticket = ticketRepository.getOne(i);
 			if(ticket==null)

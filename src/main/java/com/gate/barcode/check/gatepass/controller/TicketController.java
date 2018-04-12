@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gate.barcode.check.gatepass.model.Ticket;
+import com.gate.barcode.check.gatepass.request.AssignTicketsRequest;
 import com.gate.barcode.check.gatepass.request.BarcodeCreationRequest;
 import com.gate.barcode.check.gatepass.response.TicketResponse;
 import com.gate.barcode.check.gatepass.service.TicketService;
@@ -30,8 +31,8 @@ public class TicketController {
 
 	@ApiOperation(value = "Generate desired no. of barcode.", notes = "Generate desired no. of barcode")
 	@RequestMapping(value = "/genBarcode", method = RequestMethod.POST)
-	public ResponseEntity<Object> createsdBarcode(@RequestBody BarcodeCreationRequest barcodeCreationRequest)
-			throws Exception {
+	public ResponseEntity<Object> createsdBarcode(
+			@RequestBody BarcodeCreationRequest barcodeCreationRequest) throws Exception {
 		String barCodePath = "C:\\Users\\Lothbroke\\Desktop\\Softech\\barcode\\";
 		long num = barcodeCreationRequest.getNoOfBarcode();
 		for (int i = 1; i <= num; i++) {
@@ -55,18 +56,26 @@ public class TicketController {
 
 	@ApiOperation(value = "Get a barcode", notes = "Get a barcode")
 	@RequestMapping(value = "getBarcode/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Object> getBarcode(@RequestHeader Long id) {
+	public ResponseEntity<Object> getBarcode(@PathVariable Long id) {
 		TicketResponse ticketResponse = ticketService.getBarcode(id);
 		return new ResponseEntity<Object>(ticketResponse, HttpStatus.OK);
 
 	}
-	
-	@ApiOperation(value="Check barcode", notes="check barcode")
-	@RequestMapping(value="/checkBarcode/{uniqueId:.+}/{userId}",method=RequestMethod.GET)
-	public ResponseEntity<Object> checkBarcode(@PathVariable String uniqueId,@RequestHeader Long userId){
-		ticketService.checkBarcode(uniqueId,userId);
+
+	@ApiOperation(value = "Check barcode", notes = "check barcode")
+	@RequestMapping(value = "/checkBarcode/{uniqueId}/{userId}", method = RequestMethod.GET)
+	public ResponseEntity<Object> checkBarcode(@PathVariable String uniqueId,
+			@PathVariable Long userId) {
+		ticketService.checkBarcode(uniqueId, userId);
 		return new ResponseEntity<Object>(HttpStatus.OK);
-		
+
 	}
 
+	@RequestMapping(value = "/assignTickets", method = RequestMethod.PUT)
+	public ResponseEntity<Object> assignTickets(@RequestHeader Long userId,
+			@RequestBody AssignTicketsRequest request) {
+		ticketService.assignTickets(userId, request);
+		return new ResponseEntity<Object>(
+				"Successfully Assigned to: " + request.getStationMaster(), HttpStatus.OK);
+	}
 }
