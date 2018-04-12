@@ -2,6 +2,7 @@ package com.gate.barcode.check.gatepass.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -100,17 +101,17 @@ public class UserService {
 	 */
 	@Transactional
 	public void deleteUser(Long userId, Long id) {
-		User admin = userRepository.getOne(userId);
-		if(admin==null)
+		Optional<User> admin = userRepository.findById(userId);
+		if(!admin.isPresent())
 			throw new ServiceException("Sorry your Id is wrong");
-		if(!admin.getUserType().equals(UserType.ADMIN))
+		if(!admin.get().getUserType().equals(UserType.ADMIN))
 			throw new ServiceException("Sorry you are not authorized.");
-		User toDelete = userRepository.getOne(id);
-		if(toDelete==null)
+		Optional<User> toDelete = userRepository.findById(id);
+		if(!toDelete.isPresent())
 			throw new ServiceException("No user found to delete");
-		if(admin.getId()==toDelete.getId())
+		if(admin.get().getId()==toDelete.get().getId())
 			throw new ServiceException("Sorry you cannot delete yourself");
-		userRepository.delete(toDelete);
+		userRepository.delete(toDelete.get());
 	}
 	/**
 	 * This method returns user according to id
