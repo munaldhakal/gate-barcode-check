@@ -26,6 +26,7 @@ public class Ticket implements Serializable {
 	private Long createdBy;
 	private String uniqueId;
 	private String price;
+	private Long stationMaster;
 	
 //	private Long gateId;
 
@@ -121,4 +122,12 @@ public class Ticket implements Serializable {
 		this.ticketStatus = ticketStatus;
 	}
 
+	public Long getStationMaster() {
+		return stationMaster;
+	}
+
+	public void setStationMaster(Long stationMaster) {
+		this.stationMaster = stationMaster;
+	}
+	
 }

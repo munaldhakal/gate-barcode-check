@@ -29,7 +29,7 @@ public class TicketController {
 	private TicketService ticketService;
 
 	@ApiOperation(value = "Generate desired no. of barcode.", notes = "Generate desired no. of barcode")
-	@RequestMapping(value = "genBarcode", method = RequestMethod.POST)
+	@RequestMapping(value = "/genBarcode", method = RequestMethod.POST)
 	public ResponseEntity<Object> createsdBarcode(@RequestBody BarcodeCreationRequest barcodeCreationRequest)
 			throws Exception {
 		String barCodePath = "C:\\Users\\Lothbroke\\Desktop\\Softech\\barcode\\";
@@ -47,7 +47,7 @@ public class TicketController {
 	}
 
 	@ApiOperation(value = "Get all barcode", notes = "Get all barcodes")
-	@RequestMapping(value = "getAllBarcode", method = RequestMethod.GET)
+	@RequestMapping(value = "/getAllBarcode", method = RequestMethod.GET)
 	public ResponseEntity<Object> getAllBarcode() {
 		List<TicketResponse> ticketResponseList = ticketService.getAllBarcode();
 		return new ResponseEntity<Object>(ticketResponseList, HttpStatus.OK);
@@ -62,7 +62,7 @@ public class TicketController {
 	}
 	
 	@ApiOperation(value="Check barcode", notes="check barcode")
-	@RequestMapping(value="checkBarcode/{uniqueId:.+}/{userId}",method=RequestMethod.GET)
+	@RequestMapping(value="/checkBarcode/{uniqueId:.+}/{userId}",method=RequestMethod.GET)
 	public ResponseEntity<Object> checkBarcode(@PathVariable String uniqueId,@RequestHeader Long userId){
 		ticketService.checkBarcode(uniqueId,userId);
 		return new ResponseEntity<Object>(HttpStatus.OK);

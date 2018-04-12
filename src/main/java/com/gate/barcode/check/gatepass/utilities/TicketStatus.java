@@ -2,9 +2,13 @@ package com.gate.barcode.check.gatepass.utilities;
 
 public enum TicketStatus {
 	/**
-	 * This denotes the ticket is valid
+	 * This denotes the ticket is not verified
 	 */
-	ACTIVE,
+	UNVERIFIED,
+	/**
+	 * This denotes the ticket verified
+	 */
+	VERIFIED,
 	/**
 	 * This denotes the ticket is invalid
 	 * 	

@@ -22,6 +22,7 @@ import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.model.User;
 import com.gate.barcode.check.gatepass.repository.TicketRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
+import com.gate.barcode.check.gatepass.request.AssignTicketsRequest;
 import com.gate.barcode.check.gatepass.request.BarcodeCreationRequest;
 import com.gate.barcode.check.gatepass.response.TicketResponse;
 import com.gate.barcode.check.gatepass.utilities.TicketStatus;
@@ -58,7 +59,7 @@ public class TicketService {
 			Ticket ticket = new Ticket();
 			ticket.setBarcode(path);
 
-			ticket.setTicketStatus(TicketStatus.ACTIVE);
+			ticket.setTicketStatus(TicketStatus.UNVERIFIED);
 			ticket.setCreatedBy(barcodeCreationRequest.getCreatedBy());
 			ticket.setCreatedDate(new Date());
 			ticket.setPrice(barcodeCreationRequest.getPrice());
@@ -166,6 +167,29 @@ public class TicketService {
 		ticket.setModifiedBy(userId);
 		ticket.setTicketStatus(TicketStatus.BLOCKED);
 		ticketRepository.save(ticket);
+	}
+
+	/**
+	 *<<This method assigns already assigned tickets to the stationmaster>>
+	 * @param userId
+	 * @param request
+	 * @author Munal
+	 * @since 12/04/2018, Modified In: @version, By @author
+	 */
+	@Transactional
+	public void assignTickets(Long userId, AssignTicketsRequest request) {
+		//check either admin or not and continue
+		for(Long i=request.getIdFrom();i<=request.getIdTo();i++) {
+			Ticket ticket = ticketRepository.getOne(i);
+			if(ticket==null)
+				continue;
+			ticket.setModifiedBy(userId);
+			ticket.setModifiedDate(new Date());
+			if(request.getPrice()!=null)
+			ticket.setPrice(request.getPrice());
+			ticket.setStationMaster(request.getStationMaster());
+			ticketRepository.save(ticket);
+		}
 	}
 
 }
