@@ -14,4 +14,6 @@ import com.gate.barcode.check.gatepass.model.Station;
 @Repository
 public interface StationRepository extends JpaRepository<Station, Long> {
 
+	Station findByStationName(String stationName);
+
 }

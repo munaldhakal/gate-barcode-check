@@ -15,6 +15,7 @@ import javax.persistence.Table;
  * @version 1.0.0
  * @since , 11 Apr 2018
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "gate")
 public class Gate implements Serializable{
@@ -23,30 +24,26 @@ public class Gate implements Serializable{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String gateName;
-	private Long ticketCheckor;
-
+	private Long ticketChecker;
 	public Long getId() {
 		return id;
 	}
-
 	public void setId(Long id) {
 		this.id = id;
 	}
-
 	public String getGateName() {
 		return gateName;
 	}
-
 	public void setGateName(String gateName) {
 		this.gateName = gateName;
 	}
-
-	public Long getTicketCheckor() {
-		return ticketCheckor;
+	public Long getTicketChecker() {
+		return ticketChecker;
+	}
+	public void setTicketChecker(Long ticketChecker) {
+		this.ticketChecker = ticketChecker;
 	}
 
-	public void setTicketCheckor(Long ticketCheckor) {
-		this.ticketCheckor = ticketCheckor;
-	}
+	
 	
 }
