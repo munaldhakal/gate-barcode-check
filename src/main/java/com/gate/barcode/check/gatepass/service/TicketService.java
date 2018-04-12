@@ -41,8 +41,8 @@ public class TicketService {
 	private CommonService commonService;
 
 	@Transactional
-	public Ticket generateBarcode(String uniqueID, String barCodePath, BarcodeCreationRequest barcodeCreationRequest) {
-
+	public Ticket generateBarcode(Long userId,String uniqueID, String barCodePath, BarcodeCreationRequest barcodeCreationRequest) {
+		commonService.checkUserType(userId);
 		try {
 			Code128Bean bean = new Code128Bean();
 			final int dpi = 160;
@@ -63,10 +63,11 @@ public class TicketService {
 			ticket.setBarcode(path);
 
 			ticket.setTicketStatus(TicketStatus.UNVERIFIED);
-			ticket.setCreatedBy(barcodeCreationRequest.getCreatedBy());
+			ticket.setCreatedBy(userId);
 			ticket.setCreatedDate(new Date());
 			ticket.setPrice(barcodeCreationRequest.getPrice());
 			ticket.setUniqueId(uniqueID);
+			ticket.setStationMaster(barcodeCreationRequest.getStationMaster());
 			ticketRepository.save(ticket);
 
 			canvas.finish();

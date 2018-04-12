@@ -31,7 +31,7 @@ public class TicketController {
 
 	@ApiOperation(value = "Generate desired no. of barcode.", notes = "Generate desired no. of barcode")
 	@RequestMapping(value = "/genBarcode", method = RequestMethod.POST)
-	public ResponseEntity<Object> createsdBarcode(
+	public ResponseEntity<Object> createsdBarcode(@RequestHeader Long userId,
 			@RequestBody BarcodeCreationRequest barcodeCreationRequest) throws Exception {
 		String barCodePath = "C:\\Users\\Lothbroke\\Desktop\\Softech\\barcode\\";
 		long num = barcodeCreationRequest.getNoOfBarcode();
@@ -41,7 +41,8 @@ public class TicketController {
 
 			String uniqueID = Long.toString(l, Character.MAX_RADIX);
 
-			ticketService.generateBarcode(uniqueID, barCodePath, barcodeCreationRequest);
+			ticketService.generateBarcode(userId, uniqueID, barCodePath,
+					barcodeCreationRequest);
 		}
 
 		return new ResponseEntity<Object>("Barcode created successfully", HttpStatus.OK);

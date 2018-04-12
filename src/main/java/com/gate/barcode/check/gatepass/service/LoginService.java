@@ -30,11 +30,13 @@ public class LoginService {
 	 */
 	@Transactional
 	public Map<Object, Object> login(LoginDto loginDto) {
-		Login login = loginRepository.findByUsernameAndPassword(loginDto.getUsername(),BCrypt.hashpw(loginDto.getPassword(), BCrypt.gensalt()));
+		Login login = loginRepository.findByUsername(loginDto.getUsername());
 		if(login == null)
-			throw new ServiceException("No login found for username :"+loginDto.getUsername()+" of password: "+loginDto.getPassword());
+			throw new ServiceException("No login found for username :"+loginDto.getUsername());
+		if(BCrypt.checkpw(loginDto.getPassword(), login.getPassword())) {
 		login.setLoginStatus(LoginStatus.LOGGEDIN);
 		loginRepository.save(login);
+		}
 		Map<Object, Object>response = new HashMap<>();
 		response.put("username", login.getUsername());
 		response.put("user", userService.getUser(login.getUserId()));

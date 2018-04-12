@@ -1,11 +1,16 @@
 package com.gate.barcode.check.gatepass.request;
 
-public class BarcodeCreationRequest {
+import java.io.Serializable;
 
-	private Long createdBy;
+import javax.validation.constraints.NotNull;
 
+public class BarcodeCreationRequest implements Serializable {
+	@NotNull(message = "Total Number of barcode should not be null")
 	private Long noOfBarcode;
+	@NotNull(message = "Price cannot be null")
 	private String price;
+	@NotNull(message = "station Master Id cannot be null")
+	private Long stationMaster;
 	
 
 	public String getPrice() {
@@ -24,12 +29,12 @@ public class BarcodeCreationRequest {
 		this.noOfBarcode = noOfBarcode;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
+	public Long getStationMaster() {
+		return stationMaster;
 	}
 
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
+	public void setStationMaster(Long stationMaster) {
+		this.stationMaster = stationMaster;
 	}
-
+	
 }
