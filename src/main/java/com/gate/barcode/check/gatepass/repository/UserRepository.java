@@ -8,6 +8,10 @@ import com.gate.barcode.check.gatepass.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+	//User findOne(Long userId);
+
+	User findAllById(Long userId);
+
 	
 
 }

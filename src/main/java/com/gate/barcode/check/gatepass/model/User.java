@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import com.gate.barcode.check.gatepass.utilities.UserType;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "user")
 public class User implements Serializable {
