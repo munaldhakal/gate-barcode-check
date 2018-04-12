@@ -23,6 +23,7 @@ public class Gate implements Serializable{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String gateName;
+	private Long ticketCheckor;
 
 	public Long getId() {
 		return id;
@@ -40,4 +41,12 @@ public class Gate implements Serializable{
 		this.gateName = gateName;
 	}
 
+	public Long getTicketCheckor() {
+		return ticketCheckor;
+	}
+
+	public void setTicketCheckor(Long ticketCheckor) {
+		this.ticketCheckor = ticketCheckor;
+	}
+	
 }
