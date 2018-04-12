@@ -1,7 +1,9 @@
 package com.gate.barcode.check.gatepass.service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -19,8 +21,9 @@ import com.gate.barcode.check.gatepass.utilities.LoginStatus;
 public class LoginService {
 	@Autowired
 	private LoginRepository loginRepository;
-	@Autowired 
+	@Autowired
 	private UserService userService;
+
 	/**
 	 * This method logins user according to the username and password
 	 * @param loginDto
@@ -31,17 +34,20 @@ public class LoginService {
 	@Transactional
 	public Map<Object, Object> login(LoginDto loginDto) {
 		Login login = loginRepository.findByUsername(loginDto.getUsername());
-		if(login == null)
-			throw new ServiceException("No login found for username :"+loginDto.getUsername());
-		if(BCrypt.checkpw(loginDto.getPassword(), login.getPassword())) {
-		login.setLoginStatus(LoginStatus.LOGGEDIN);
-		loginRepository.save(login);
+		if (login == null)
+			throw new ServiceException(
+					"No login found for username :" + loginDto.getUsername());
+		if (BCrypt.checkpw(loginDto.getPassword(), login.getPassword())) {
+			login.setLastLogin(new Date());
+			login.setLoginStatus(LoginStatus.LOGGEDIN);
+			loginRepository.save(login);
 		}
-		Map<Object, Object>response = new HashMap<>();
+		Map<Object, Object> response = new HashMap<>();
 		response.put("username", login.getUsername());
 		response.put("user", userService.getUser(login.getUserId()));
 		return response;
 	}
+
 	/**
 	 * This method is used to log out the user by userId
 	 * @param userId
@@ -49,10 +55,10 @@ public class LoginService {
 	 * @since 11/04/2018
 	 */
 	public void logout(Long userId) {
-		Login login = loginRepository.getOne(userId);
-		if(login == null)
-			throw new ServiceException("No login found of Id: "+userId);
-		login.setLoginStatus(LoginStatus.LOGGEDOUT);
-		loginRepository.save(login);
+		Optional<Login> login = loginRepository.findById(userId);
+		if (!login.isPresent())
+			throw new ServiceException("No login found of Id: " + userId);
+		login.get().setLoginStatus(LoginStatus.LOGGEDOUT);
+		loginRepository.save(login.get());
 	}
 }

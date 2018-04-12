@@ -38,15 +38,15 @@ public class UserService {
 	 */
 	@Transactional
 	public void createUser(Long userId, UserDto userDto) {
-		User user = userRepository.getOne(userId);
-		if (user == null)
+		Optional<User> user = userRepository.findById(userId);
+		if (!user.isPresent())
 			throw new ServiceException("No user found of userid :" + userId);
-		if (!user.getUserType().equals(UserType.ADMIN)) {
+		if (!user.get().getUserType().equals(UserType.ADMIN)) {
 			throw new ServiceException("Sorry you are not authorized");
 		}
 		User toCreate = new User();
 		toCreate.setAddress(userDto.getAddress());
-		toCreate.setCreatedBy(user.getId());
+		toCreate.setCreatedBy(user.get().getId());
 		toCreate.setEmail(userDto.getEmail());
 		toCreate.setName(userDto.getName());
 		toCreate.setPhoneNumber(userDto.getPhoneNumber());
@@ -71,26 +71,26 @@ public class UserService {
 	 */
 	@Transactional
 	public void editUser(Long userId, UserEditRequest request) {
-		User admin = userRepository.getOne(userId);
-		if(admin==null)
+		Optional<User> admin = userRepository.findById(userId);
+		if(!admin.isPresent())
 			throw new ServiceException("Sorry your Id is wrong");
-		if(!admin.getUserType().equals(UserType.ADMIN))
+		if(!admin.get().getUserType().equals(UserType.ADMIN))
 			throw new ServiceException("Sorry you are not authorized.");
-		User toEdit = userRepository.getOne(request.getId());
-		if(toEdit==null)
+		Optional<User> toEdit = userRepository.findById(request.getId());
+		if(!toEdit.isPresent())
 			throw new ServiceException("No user found to edit");
 		if(request.getAddress()!=null)
-			toEdit.setAddress(request.getAddress());
+			toEdit.get().setAddress(request.getAddress());
 		if(request.getEmail()!=null)
-			toEdit.setEmail(request.getEmail());
+			toEdit.get().setEmail(request.getEmail());
 		if(request.getName()!=null)
-			toEdit.setName(request.getName());
+			toEdit.get().setName(request.getName());
 		if(request.getPhoneNumber()!=null)
-			toEdit.setPhoneNumber(request.getPhoneNumber());
+			toEdit.get().setPhoneNumber(request.getPhoneNumber());
 		if(request.getUserType()!=null)
-			toEdit.setUserType(request.getUserType());
-		toEdit.setEditedBy(admin.getId());
-		userRepository.save(toEdit);
+			toEdit.get().setUserType(request.getUserType());
+		toEdit.get().setEditedBy(admin.get().getId());
+		userRepository.save(toEdit.get());
 	}
 	/**
 	 * This method deletes a user by id
@@ -122,10 +122,10 @@ public class UserService {
 	 */
 	@Transactional
 	public UserResponse getUser(Long id) {
-		User user =userRepository.getOne(id);
-		if(user==null)
+		Optional<User> user =userRepository.findById(id);
+		if(!user.isPresent())
 			throw new ServiceException("Sorry no user found");
-		return getUserObj(user);
+		return getUserObj(user.get());
 	}
 	/**
 	 * This method returns user to get =Userr and getAllUsers methods

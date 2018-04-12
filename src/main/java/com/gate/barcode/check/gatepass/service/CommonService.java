@@ -8,13 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.gate.barcode.check.gatepass.exception.NotAuthorizedException;
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
-import com.gate.barcode.check.gatepass.model.Gate;
 import com.gate.barcode.check.gatepass.model.Login;
 import com.gate.barcode.check.gatepass.model.User;
-import com.gate.barcode.check.gatepass.repository.GateRepository;
 import com.gate.barcode.check.gatepass.repository.LoginRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
-import com.gate.barcode.check.gatepass.request.GateCreationRequest;
 import com.gate.barcode.check.gatepass.utilities.LoginStatus;
 import com.gate.barcode.check.gatepass.utilities.UserType;
 
