@@ -15,64 +15,92 @@ import javax.persistence.TemporalType;
 
 import com.gate.barcode.check.gatepass.utilities.TicketStatus;
 
-
-
 @SuppressWarnings("serial")
 @Entity
 public class Ticket implements Serializable {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	private String barcode;
 	private Long createdBy;
 	private String uniqueId;
+	private String price;
 	
+//	private Long gateId;
+
 	@Temporal(TemporalType.DATE)
 	@Column(name = "createdDate")
 	private Date createdDate;
 	private Long modifiedBy;
-	
+
 	@Temporal(TemporalType.DATE)
 	@Column(name = "modifiedDate")
 	private Date modifiedDate;
-	
+
 	@Enumerated(EnumType.STRING)
 	private TicketStatus ticketStatus;
+
+//	public Long getGateId() {
+//		return gateId;
+//	}
+//
+//	public void setGateId(Long gateId) {
+//		this.gateId = gateId;
+//	}
+
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getBarcode() {
 		return barcode;
 	}
+
+	public String getPrice() {
+		return price;
+	}
+
+	public void setPrice(String price) {
+		this.price = price;
+	}
+
 	public void setBarcode(String barcode) {
 		this.barcode = barcode;
 	}
+
 	public Long getCreatedBy() {
 		return createdBy;
 	}
-	
+
 	public String getUniqueId() {
 		return uniqueId;
 	}
+
 	public void setUniqueId(String uniqueId) {
 		this.uniqueId = uniqueId;
 	}
+
 	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
+
 	public Date getCreatedDate() {
 		return createdDate;
 	}
+
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
 	}
+
 	public Long getModifiedBy() {
 		return modifiedBy;
 	}
+
 	public void setModifiedBy(Long modifiedBy) {
 		this.modifiedBy = modifiedBy;
 	}
@@ -80,15 +108,17 @@ public class Ticket implements Serializable {
 	public Date getModifiedDate() {
 		return modifiedDate;
 	}
+
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
+
 	public TicketStatus getTicketStatus() {
 		return ticketStatus;
 	}
+
 	public void setTicketStatus(TicketStatus ticketStatus) {
 		this.ticketStatus = ticketStatus;
 	}
-	
-	
+
 }

@@ -5,6 +5,16 @@ public class BarcodeCreationRequest {
 	private Long createdBy;
 
 	private Long noOfBarcode;
+	private String price;
+	
+
+	public String getPrice() {
+		return price;
+	}
+
+	public void setPrice(String price) {
+		this.price = price;
+	}
 
 	public Long getNoOfBarcode() {
 		return noOfBarcode;

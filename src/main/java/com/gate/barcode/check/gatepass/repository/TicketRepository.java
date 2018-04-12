@@ -11,8 +11,10 @@ import com.gate.barcode.check.gatepass.utilities.TicketStatus;
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
-	//List<Ticket> findAllAndTicketStatusNot(TicketStatus blocked);
-
 	List<Ticket> findAllByTicketStatusNot(TicketStatus blocked);
+
+	Ticket findByIdAndTicketStatusNot(Long id, TicketStatus blocked);
+
+	Ticket findByUniqueIdAndTicketStatusNot(String uniqueId, TicketStatus blocked);
 
 }

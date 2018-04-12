@@ -15,6 +15,7 @@ import javax.persistence.Table;
  * @version 1.0.0
  * @since , 11 Apr 2018
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "station")
 public class Station implements Serializable {

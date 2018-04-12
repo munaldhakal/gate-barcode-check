@@ -4,6 +4,14 @@ public class TicketResponse {
 
 	private Long id;
 	private String barcode;
+	private String price;
+	
+	public String getPrice() {
+		return price;
+	}
+	public void setPrice(String price) {
+		this.price = price;
+	}
 	public Long getId() {
 		return id;
 	}
