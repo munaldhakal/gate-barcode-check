@@ -96,6 +96,6 @@ public class GateService {
 		gate.get().setGateName(gateEditRequest.getGateName());
 		gate.get().setTicketChecker(gateEditRequest.getTicketChecker());
 		gateRepository.save(gate.get());
-		
+
 	}
 }
