@@ -89,7 +89,9 @@ public class StationService {
 		if (!station.isPresent()) {
 			throw new NotFoundException("Station with id " + stationEditRequest.getId() + " not found.");
 		}
+		if(stationEditRequest.getStationMaster()!=null)
 		station.get().setStationMaster(stationEditRequest.getStationMaster());
+		if(stationEditRequest.getStationName()!=null)
 		station.get().setStationName(stationEditRequest.getStationName());
 		stationRepository.save(station.get());
 

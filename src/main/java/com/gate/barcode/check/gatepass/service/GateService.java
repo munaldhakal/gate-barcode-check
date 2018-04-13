@@ -37,7 +37,8 @@ public class GateService {
 	public void createGate(GateCreationRequest gateCreationRequest) {
 		Gate gate = gateRepository.findByGateName(gateCreationRequest.getGateName());
 		if (gate != null) {
-			throw new AlreadyExistException("Gate with name" + gateCreationRequest.getGateName() + " already exist.");
+			throw new AlreadyExistException("Gate with name"
+					+ gateCreationRequest.getGateName() + " already exist.");
 		}
 		gate = new Gate();
 
@@ -90,11 +91,14 @@ public class GateService {
 
 		Optional<Gate> gate = gateRepository.findById(gateEditRequest.getId());
 		if (!gate.isPresent()) {
-			throw new NotFoundException("Gate with id=" + gateEditRequest.getId() + " not found.");
+			throw new NotFoundException(
+					"Gate with id=" + gateEditRequest.getId() + " not found.");
 
 		}
-		gate.get().setGateName(gateEditRequest.getGateName());
-		gate.get().setTicketChecker(gateEditRequest.getTicketChecker());
+		if (gateEditRequest.getGateName() != null)
+			gate.get().setGateName(gateEditRequest.getGateName());
+		if (gateEditRequest.getTicketChecker() != null)
+			gate.get().setTicketChecker(gateEditRequest.getTicketChecker());
 		gateRepository.save(gate.get());
 
 	}

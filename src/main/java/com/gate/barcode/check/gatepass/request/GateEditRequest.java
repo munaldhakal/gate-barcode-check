@@ -6,9 +6,7 @@ public class GateEditRequest {
 	
 	@NotNull(message="Id to edit cannot be null")
 	private long id;
-	@NotNull(message="gatetName to edit cannot be null")
 	private String gateName;
-	@NotNull(message="TicketChecker to edit cannot be null")
 	private Long ticketChecker;
 	
 	public Long getTicketChecker() {

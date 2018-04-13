@@ -5,9 +5,7 @@ import javax.validation.constraints.NotNull;
 public class StationEditRequest {
 	@NotNull(message="Id to edit cannot be null")
 	private long id;
-	@NotNull(message="stationName to edit cannot be null")
 	private String stationName;
-	@NotNull(message="stationMaster to edit cannot be null")
 	private Long stationMaster;
 	public long getId() {
 		return id;
