@@ -43,5 +43,12 @@ public class CommonService {
 		}
 
 	}
-
+	
+	public UserType getUserType(Long userId) {
+		Optional<User> user = userRepository.findById(userId);
+		if (!user.isPresent()) {
+			throw new NotFoundException("user with id=" + userId + " not found.");
+		}
+		return user.get().getUserType();
+	}
 }

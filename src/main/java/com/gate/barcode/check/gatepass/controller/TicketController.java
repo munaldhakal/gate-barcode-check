@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.request.AssignTicketsRequest;
+import com.gate.barcode.check.gatepass.request.BarCodeCheckRequest;
 import com.gate.barcode.check.gatepass.request.BarcodeCreationRequest;
 import com.gate.barcode.check.gatepass.response.TicketResponse;
+import com.gate.barcode.check.gatepass.service.CommonService;
 import com.gate.barcode.check.gatepass.service.TicketService;
 
 import io.swagger.annotations.ApiOperation;
@@ -28,37 +30,46 @@ public class TicketController {
 
 	@Autowired
 	private TicketService ticketService;
+	@Autowired
+	private CommonService commonService;
 
 	@ApiOperation(value = "Generate desired no. of barcode.", notes = "Generate desired no. of barcode")
 	@RequestMapping(value = "/genBarcode", method = RequestMethod.POST)
 	public ResponseEntity<Object> createsdBarcode(@RequestHeader Long userId,
 			@RequestBody BarcodeCreationRequest barcodeCreationRequest) throws Exception {
+		commonService.checkUserType(userId);
 		String barCodePath = "C:\\Users\\Lothbroke\\Desktop\\Softech\\barcode\\";
 		long num = barcodeCreationRequest.getNoOfBarcode();
+		int firstIndex = -1;
+		int lastIndex = -1;
 		for (int i = 1; i <= num; i++) {
 			UUID uuid = UUID.randomUUID();
 			long l = ByteBuffer.wrap(uuid.toString().getBytes()).getLong();
 
 			String uniqueID = Long.toString(l, Character.MAX_RADIX);
 
-			ticketService.generateBarcode(userId, uniqueID, barCodePath,
+			Ticket ticket = ticketService.generateBarcode(userId, uniqueID, barCodePath,
 					barcodeCreationRequest);
+			if(i==1)
+				firstIndex=Integer.valueOf(""+ticket.getId());
+			if(i==num)
+				lastIndex = Integer.valueOf(""+ticket.getId());
 		}
 
-		return new ResponseEntity<Object>("Barcode created successfully", HttpStatus.OK);
+		return new ResponseEntity<Object>("Barcode created successfully fron ID: "+firstIndex+" to ID: "+lastIndex, HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "Get all barcode", notes = "Get all barcodes")
 	@RequestMapping(value = "/getAllBarcode", method = RequestMethod.GET)
-	public ResponseEntity<Object> getAllBarcode() {
-		List<TicketResponse> ticketResponseList = ticketService.getAllBarcode();
+	public ResponseEntity<Object> getAllBarcode(@RequestHeader Long userId) {
+		List<TicketResponse> ticketResponseList = ticketService.getAllBarcode(userId);
 		return new ResponseEntity<Object>(ticketResponseList, HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "Get a barcode", notes = "Get a barcode")
 	@RequestMapping(value = "getBarcode/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Object> getBarcode(@PathVariable Long id) {
-		TicketResponse ticketResponse = ticketService.getBarcode(id);
+	public ResponseEntity<Object> getBarcode(@RequestHeader Long userId,@PathVariable Long id) {
+		TicketResponse ticketResponse = ticketService.getBarcode(userId,id);
 		return new ResponseEntity<Object>(ticketResponse, HttpStatus.OK);
 
 	}

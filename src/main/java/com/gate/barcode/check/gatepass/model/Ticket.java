@@ -27,8 +27,8 @@ public class Ticket implements Serializable {
 	private String uniqueId;
 	private String price;
 	private Long stationMaster;
-	
-//	private Long gateId;
+
+	// private Long gateId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "createdDate")
@@ -38,17 +38,24 @@ public class Ticket implements Serializable {
 	@Temporal(TemporalType.DATE)
 	@Column(name = "modifiedDate")
 	private Date modifiedDate;
-
+	private Long issuedBy;
+	private Long checkedBy;
+	@Temporal(TemporalType.DATE)
+	@Column(name = "issuedDate")
+	private Date issuedDate;
+	@Temporal(TemporalType.DATE)
+	@Column(name = "checkedDate")
+	private Date checkedDate;
 	@Enumerated(EnumType.STRING)
 	private TicketStatus ticketStatus;
 
-//	public Long getGateId() {
-//		return gateId;
-//	}
-//
-//	public void setGateId(Long gateId) {
-//		this.gateId = gateId;
-//	}
+	// public Long getGateId() {
+	// return gateId;
+	// }
+	//
+	// public void setGateId(Long gateId) {
+	// this.gateId = gateId;
+	// }
 
 	public Long getId() {
 		return id;
@@ -128,6 +135,38 @@ public class Ticket implements Serializable {
 
 	public void setStationMaster(Long stationMaster) {
 		this.stationMaster = stationMaster;
+	}
+
+	public Long getIssuedBy() {
+		return issuedBy;
+	}
+
+	public void setIssuedBy(Long issuedBy) {
+		this.issuedBy = issuedBy;
+	}
+
+	public Long getCheckedBy() {
+		return checkedBy;
+	}
+
+	public void setCheckedBy(Long checkedBy) {
+		this.checkedBy = checkedBy;
+	}
+
+	public Date getIssuedDate() {
+		return issuedDate;
+	}
+
+	public void setIssuedDate(Date issuedDate) {
+		this.issuedDate = issuedDate;
+	}
+
+	public Date getCheckedDate() {
+		return checkedDate;
+	}
+
+	public void setCheckedDate(Date checkedDate) {
+		this.checkedDate = checkedDate;
 	}
 	
 }
