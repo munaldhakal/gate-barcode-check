@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.request.AssignTicketsRequest;
-import com.gate.barcode.check.gatepass.request.BarCodeCheckRequest;
 import com.gate.barcode.check.gatepass.request.BarcodeCreationRequest;
+import com.gate.barcode.check.gatepass.response.RecordResponse;
 import com.gate.barcode.check.gatepass.response.TicketResponse;
 import com.gate.barcode.check.gatepass.service.CommonService;
 import com.gate.barcode.check.gatepass.service.TicketService;
@@ -77,8 +78,8 @@ public class TicketController {
 	@ApiOperation(value = "Check barcode", notes = "check barcode")
 	@RequestMapping(value = "/checkBarcode/{uniqueId}/{userId}", method = RequestMethod.GET)
 	public ResponseEntity<Object> checkBarcode(@PathVariable String uniqueId,
-			@PathVariable Long userId) {
-		ticketService.checkBarcode(uniqueId, userId);
+			@PathVariable Long userId,@RequestParam Long stationId,@RequestParam Long gateId) {
+		ticketService.checkBarcode(uniqueId, userId,stationId,gateId);
 		return new ResponseEntity<Object>(HttpStatus.OK);
 
 	}
@@ -89,5 +90,10 @@ public class TicketController {
 		ticketService.assignTickets(userId, request);
 		return new ResponseEntity<Object>(
 				"Successfully Assigned to: " + request.getStationMaster(), HttpStatus.OK);
+	}
+	@RequestMapping(value="/getRecords", method=RequestMethod.GET)
+	public ResponseEntity<Object> getRecords(@RequestHeader Long userId){
+		List<RecordResponse> response = ticketService.getReports(userId);
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 }

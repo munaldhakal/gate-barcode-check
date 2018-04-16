@@ -19,4 +19,13 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 
 	Station findByStationName(String stationName);
 
+	/**
+	 *<<Finds station by userId>>
+	 * @param userId
+	 * @return Station
+	 * @author Munal
+	 * @since 16/04/2018, Modified In: @version, By @author
+	 */
+	Station findByStationMaster(Long userId);
+
 }

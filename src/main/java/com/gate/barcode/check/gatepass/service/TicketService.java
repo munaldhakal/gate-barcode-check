@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,10 +25,12 @@ import org.springframework.stereotype.Service;
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.model.User;
+import com.gate.barcode.check.gatepass.repository.StationRepository;
 import com.gate.barcode.check.gatepass.repository.TicketRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
 import com.gate.barcode.check.gatepass.request.AssignTicketsRequest;
 import com.gate.barcode.check.gatepass.request.BarcodeCreationRequest;
+import com.gate.barcode.check.gatepass.response.RecordResponse;
 import com.gate.barcode.check.gatepass.response.TicketResponse;
 import com.gate.barcode.check.gatepass.utilities.TicketStatus;
 import com.gate.barcode.check.gatepass.utilities.UserType;
@@ -43,6 +46,8 @@ public class TicketService {
 
 	@Autowired
 	private CommonService commonService;
+	@Autowired
+	private StationRepository stationRepository;
 
 	@Transactional
 	public Ticket generateBarcode(Long userId, String uniqueID, String barCodePath,
@@ -183,7 +188,8 @@ public class TicketService {
 
 	}
 
-	public Boolean checkBarcode(String uniqueId, Long userId) {
+	public Boolean checkBarcode(String uniqueId, Long userId, Long stationId,
+			Long gateId) {
 		Optional<User> user = userRepository.findById(userId);
 		if (!user.isPresent()) {
 			throw new NotFoundException("User with id:" + userId + " not found.");
@@ -199,12 +205,18 @@ public class TicketService {
 			ticket.setTicketStatus(TicketStatus.VERIFIED);
 			ticket.setIssuedBy(userId);
 			ticket.setIssuedDate(new Date());
+			if (stationId != null)
+				ticket.setStationId(stationId);
+			else
+				throw new ServiceException("Please Select a station");
 			ticketRepository.save(ticket);
 			return true;
 		}
 		if (ticket.getTicketStatus().equals(TicketStatus.VERIFIED)) {
 			ticket.setTicketStatus(TicketStatus.BLOCKED);
 			ticket.setCheckedBy(userId);
+			if (gateId != null)
+				ticket.setGateId(gateId);
 			ticket.setCheckedDate(new Date());
 			ticketRepository.save(ticket);
 			return true;
@@ -233,6 +245,63 @@ public class TicketService {
 			ticket.setStationMaster(request.getStationMaster());
 			ticketRepository.save(ticket);
 		}
+	}
+
+	/**
+	 * <<This method returns the records for the users>>
+	 * @param userId
+	 * @return List<RecordResponse>
+	 * @author Munal
+	 * @since 16/04/2018, Modified In: @version, By @author
+	 */
+	public List<RecordResponse> getReports(Long userId) {
+		UserType type = commonService.getUserType(userId);
+		List<Ticket> ticket = null;
+		if (type.equals(UserType.TICKETCHECKOR)) {
+			ticket = ticketRepository.findByCheckedBy(userId);
+		}
+		else if (type.equals(UserType.STATIONMASTER)) {
+			ticket = ticketRepository.findAllByStationMaster(userId);
+		}
+		else
+			ticket = ticketRepository.findAll();
+		if (ticket == null)
+			throw new ServiceException("No tickets Found");
+		List<RecordResponse> response = new ArrayList<>();
+		for (Ticket t : ticket) {
+			RecordResponse r = new RecordResponse();
+			r.setTicketId(t.getId());
+			if(t.getCheckedBy()!=null)
+			r.setCheckedBy(t.getCheckedBy());
+			if(t.getCheckedDate()!=null)
+			r.setCheckedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCheckedDate()));
+			if(t.getCreatedBy()!=null)
+			r.setCreatedBy(t.getCreatedBy());
+			if(t.getCreatedDate()!=null)
+			r.setCreatedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCreatedDate()));
+			if(t.getGateId()!=null)
+			r.setGateId(t.getGateId());
+			if(t.getIssuedBy()!=null)
+			r.setIssuedBy(t.getIssuedBy());
+			if(t.getIssuedDate()!=null)
+			r.setIssuedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getIssuedDate()));
+			if(t.getModifiedBy()!=null)
+			r.setModifiedBy(t.getModifiedBy());
+			if(t.getModifiedDate()!=null)
+			r.setModifiedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getModifiedDate()));
+			if(t.getPrice()!=null)
+			r.setPrice(t.getPrice());
+			if(t.getStationId()!=null)
+			r.setStationId(t.getStationId());
+			if(t.getStationMaster()!=null)
+			r.setStationMaster(t.getStationMaster());
+			if(t.getTicketStatus()!=null)
+			r.setTicketStatus(t.getTicketStatus());
+			if(t.getUniqueId()!=null)
+			r.setUniqueId(t.getUniqueId());
+			response.add(r);
+		}
+		return response;
 	}
 
 }

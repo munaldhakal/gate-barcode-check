@@ -42,6 +42,8 @@ public class LoginService {
 			login.setLoginStatus(LoginStatus.LOGGEDIN);
 			loginRepository.save(login);
 		}
+		else
+			throw new ServiceException("WrongPassword");
 		Map<Object, Object> response = new HashMap<>();
 		response.put("username", login.getUsername());
 		response.put("user", userService.getUser(login.getUserId()));
