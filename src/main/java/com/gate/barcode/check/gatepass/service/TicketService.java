@@ -128,13 +128,13 @@ public class TicketService {
 	public List<TicketResponse> getAllBarcode(Long userId) {
 		List<Ticket> tickets = null;
 		if (commonService.getUserType(userId).equals(UserType.ADMIN)) {
-			tickets = ticketRepository.findAll();
+			tickets = ticketRepository.findAllByTicketStatus(TicketStatus.UNVERIFIED);
 		}
 		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
 		}
 		else {
-			tickets = ticketRepository.findAllByStationMaster(userId);
+			tickets = ticketRepository.findAllByStationMasterAndTicketStatus(userId,TicketStatus.UNVERIFIED);
 		}
 		if (tickets == null)
 			throw new NotFoundException("No Tickets Found.. Please Create One");

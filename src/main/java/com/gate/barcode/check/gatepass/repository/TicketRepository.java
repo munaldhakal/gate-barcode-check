@@ -45,4 +45,24 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 	 */
 	List<Ticket> findAllByStationMaster(Long userId);
 
+	/**
+	 *<<Add description here>>
+	 * @param userId
+	 * @param unverified
+	 * @return
+	 * @author
+	 * @since , Modified In: @version, By @author
+	 */
+	List<Ticket> findAllByStationMasterAndTicketStatus(Long userId,
+			TicketStatus unverified);
+
+	/**
+	 *<<Add description here>>
+	 * @param unverified
+	 * @return
+	 * @author
+	 * @since , Modified In: @version, By @author
+	 */
+	List<Ticket> findAllByTicketStatus(TicketStatus unverified);
+
 }
