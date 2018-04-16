@@ -1,6 +1,5 @@
 package com.gate.barcode.check.gatepass.utilities;
 
-
 public enum UserType {
 	/**
 	 * This denotes the admin
@@ -11,7 +10,7 @@ public enum UserType {
 	 */
 	STATIONMASTER,
 	/**
-	 * This denotes the ticketcheckor
+	 * This denotes the ticket checker
 	 */
-	TICKETCHECKOR
+	TICKETCHECKER
 }

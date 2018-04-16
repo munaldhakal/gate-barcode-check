@@ -1,6 +1,5 @@
 package com.gate.barcode.check.gatepass.controller;
 
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 import java.util.List;
 

@@ -130,7 +130,7 @@ public class TicketService {
 		if (commonService.getUserType(userId).equals(UserType.ADMIN)) {
 			tickets = ticketRepository.findAll();
 		}
-		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKOR)) {
+		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
 		}
 		else {
@@ -162,7 +162,7 @@ public class TicketService {
 		Optional<Ticket> ticket = null;
 		if (commonService.getUserType(userId).equals(UserType.ADMIN))
 			ticket = ticketRepository.findById(id);
-		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKOR)) {
+		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
 		}
 		else {
@@ -257,7 +257,7 @@ public class TicketService {
 	public List<RecordResponse> getReports(Long userId) {
 		UserType type = commonService.getUserType(userId);
 		List<Ticket> ticket = null;
-		if (type.equals(UserType.TICKETCHECKOR)) {
+		if (type.equals(UserType.TICKETCHECKER)) {
 			ticket = ticketRepository.findByCheckedBy(userId);
 		}
 		else if (type.equals(UserType.STATIONMASTER)) {
