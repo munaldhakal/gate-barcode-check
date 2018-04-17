@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gate.barcode.check.gatepass.dto.UserDto;
 import com.gate.barcode.check.gatepass.request.UserEditRequest;
 import com.gate.barcode.check.gatepass.response.UserResponse;
 import com.gate.barcode.check.gatepass.service.UserService;
+import com.gate.barcode.check.gatepass.utilities.UserType;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -48,8 +50,8 @@ public class UserController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<Object> getAllUsers() {
-		List<UserResponse> response = userService.getAllUsers();
+	public ResponseEntity<Object> getAllUsers(@RequestParam(required=false)UserType userType) {
+		List<UserResponse> response = userService.getAllUsers(userType);
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 }

@@ -151,11 +151,17 @@ public class UserService {
 	 * This method returns list of all users
 	 * @return List<UserResponse>
 	 * @author Munal
+	 * @param userType 
 	 * @since 11/04/2018
 	 */
 	@Transactional
-	public List<UserResponse> getAllUsers() {
-		List<User> user = userRepository.findAll();
+	public List<UserResponse> getAllUsers(UserType userType) {
+		List<User> user=null;
+		if(userType==null)
+			user = userRepository.findAll();
+		else {
+			user=userRepository.findAllByUserType(userType);
+		}
 		if(user==null)
 			throw new ServiceException("Sorry no user found");
 		List<UserResponse> response = new ArrayList<>();
