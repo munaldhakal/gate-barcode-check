@@ -23,8 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
+import com.gate.barcode.check.gatepass.model.Gate;
+import com.gate.barcode.check.gatepass.model.Station;
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.model.User;
+import com.gate.barcode.check.gatepass.repository.GateRepository;
 import com.gate.barcode.check.gatepass.repository.StationRepository;
 import com.gate.barcode.check.gatepass.repository.TicketRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
@@ -49,6 +52,9 @@ public class TicketService {
 	@Autowired
 	private StationRepository stationRepository;
 
+	@Autowired
+	private GateRepository gateRepository;
+
 	@Transactional
 	public Ticket generateBarcode(Long userId, String uniqueID, String barCodePath,
 			BarcodeCreationRequest barcodeCreationRequest) {
@@ -65,8 +71,8 @@ public class TicketService {
 
 			FileOutputStream out = new FileOutputStream(outputFile);
 
-			BitmapCanvasProvider canvas = new BitmapCanvasProvider(out, "image/x-png",
-					dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+			BitmapCanvasProvider canvas = new BitmapCanvasProvider(out, "image/x-png", dpi,
+					BufferedImage.TYPE_BYTE_BINARY, false, 0);
 
 			bean.generateBarcode(canvas, uniqueID);
 			String path = outputFile.getAbsolutePath();
@@ -83,8 +89,7 @@ public class TicketService {
 			canvas.finish();
 
 			System.out.println("Bar Code is generated successfully…");
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
@@ -109,8 +114,7 @@ public class TicketService {
 		byte[] bytes = new byte[(int) length];
 		int offset = 0;
 		int numRead = 0;
-		while (offset < bytes.length
-				&& (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
+		while (offset < bytes.length && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
 			offset += numRead;
 		}
 		if (offset < bytes.length) {
@@ -129,12 +133,10 @@ public class TicketService {
 		List<Ticket> tickets = null;
 		if (commonService.getUserType(userId).equals(UserType.ADMIN)) {
 			tickets = ticketRepository.findAllByTicketStatus(TicketStatus.UNVERIFIED);
-		}
-		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
+		} else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
-		}
-		else {
-			tickets = ticketRepository.findAllByStationMasterAndTicketStatus(userId,TicketStatus.UNVERIFIED);
+		} else {
+			tickets = ticketRepository.findAllByStationMasterAndTicketStatus(userId, TicketStatus.UNVERIFIED);
 		}
 		if (tickets == null)
 			throw new NotFoundException("No Tickets Found.. Please Create One");
@@ -148,8 +150,7 @@ public class TicketService {
 			try {
 				String encodstring = encodeFileToBase64Binary(outputFile);
 				ticketResponse.setBarcode(encodstring);
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			ticketResponseList.add(ticketResponse);
@@ -164,13 +165,11 @@ public class TicketService {
 			ticket = ticketRepository.findById(id);
 		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
-		}
-		else {
+		} else {
 			ticket = ticketRepository.findByStationMaster(userId);
 		}
 		if (!ticket.isPresent()) {
-			throw new NotFoundException(
-					"Barcode with id=" + id + " not found. Try with different ID.");
+			throw new NotFoundException("Barcode with id=" + id + " not found. Try with different ID.");
 		}
 		TicketResponse ticketResponse = new TicketResponse();
 		ticketResponse.setId(ticket.get().getId());
@@ -180,28 +179,25 @@ public class TicketService {
 		try {
 			String encodstring = encodeFileToBase64Binary(outputFile);
 			ticketResponse.setBarcode(encodstring);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return ticketResponse;
 
 	}
 
-	public Boolean checkBarcode(String uniqueId, Long userId, Long stationId,
-			Long gateId) {
+	public Boolean checkBarcode(String uniqueId, Long userId, Long stationId, Long gateId) {
 		Optional<User> user = userRepository.findById(userId);
 		if (!user.isPresent()) {
 			throw new NotFoundException("User with id:" + userId + " not found.");
 		}
-		Ticket ticket = ticketRepository.findByUniqueIdAndTicketStatusNot(uniqueId,
-				TicketStatus.BLOCKED);
+		Ticket ticket = ticketRepository.findByUniqueIdAndTicketStatusNot(uniqueId, TicketStatus.BLOCKED);
 		if (ticket == null) {
 			throw new ServiceException("Sorry ticket is no more valid.");
 		}
-		if (ticket.getTicketStatus().equals(TicketStatus.UNVERIFIED) && (commonService
-				.getUserType(userId).equals(UserType.ADMIN)
-				|| commonService.getUserType(userId).equals(UserType.STATIONMASTER))) {
+		if (ticket.getTicketStatus().equals(TicketStatus.UNVERIFIED)
+				&& (commonService.getUserType(userId).equals(UserType.ADMIN)
+						|| commonService.getUserType(userId).equals(UserType.STATIONMASTER))) {
 			ticket.setTicketStatus(TicketStatus.VERIFIED);
 			ticket.setIssuedBy(userId);
 			ticket.setIssuedDate(new Date());
@@ -226,6 +222,7 @@ public class TicketService {
 
 	/**
 	 * <<This method assigns already assigned tickets to the stationmaster>>
+	 * 
 	 * @param userId
 	 * @param request
 	 * @author Munal
@@ -249,6 +246,7 @@ public class TicketService {
 
 	/**
 	 * <<This method returns the records for the users>>
+	 * 
 	 * @param userId
 	 * @return List<RecordResponse>
 	 * @author Munal
@@ -259,11 +257,9 @@ public class TicketService {
 		List<Ticket> ticket = null;
 		if (type.equals(UserType.TICKETCHECKER)) {
 			ticket = ticketRepository.findByCheckedBy(userId);
-		}
-		else if (type.equals(UserType.STATIONMASTER)) {
+		} else if (type.equals(UserType.STATIONMASTER)) {
 			ticket = ticketRepository.findAllByStationMaster(userId);
-		}
-		else
+		} else
 			ticket = ticketRepository.findAll();
 		if (ticket == null)
 			throw new ServiceException("No tickets Found");
@@ -271,34 +267,59 @@ public class TicketService {
 		for (Ticket t : ticket) {
 			RecordResponse r = new RecordResponse();
 			r.setTicketId(t.getId());
-			if(t.getCheckedBy()!=null)
-			r.setCheckedBy(t.getCheckedBy());
-			if(t.getCheckedDate()!=null)
-			r.setCheckedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCheckedDate()));
-			if(t.getCreatedBy()!=null)
-			r.setCreatedBy(t.getCreatedBy());
-			if(t.getCreatedDate()!=null)
-			r.setCreatedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCreatedDate()));
-			if(t.getGateId()!=null)
-			r.setGateId(t.getGateId());
-			if(t.getIssuedBy()!=null)
-			r.setIssuedBy(t.getIssuedBy());
-			if(t.getIssuedDate()!=null)
-			r.setIssuedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getIssuedDate()));
-			if(t.getModifiedBy()!=null)
-			r.setModifiedBy(t.getModifiedBy());
-			if(t.getModifiedDate()!=null)
-			r.setModifiedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getModifiedDate()));
-			if(t.getPrice()!=null)
-			r.setPrice(t.getPrice());
-			if(t.getStationId()!=null)
-			r.setStationId(t.getStationId());
-			if(t.getStationMaster()!=null)
-			r.setStationMaster(t.getStationMaster());
-			if(t.getTicketStatus()!=null)
-			r.setTicketStatus(t.getTicketStatus());
-			if(t.getUniqueId()!=null)
-			r.setUniqueId(t.getUniqueId());
+			if (t.getCheckedBy() != null) {
+				r.setCheckedBy(t.getCheckedBy());
+				Optional<User> user = userRepository.findById(t.getCheckedBy());
+				r.setCheckedByUserName(user.get().getName());
+			}
+
+			if (t.getCheckedDate() != null)
+				r.setCheckedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCheckedDate()));
+			if (t.getCreatedBy() != null) {
+				r.setCreatedBy(t.getCreatedBy());
+				Optional<User> user = userRepository.findById(t.getCreatedBy());
+				r.setCreatedByUserName(user.get().getName());
+
+			}
+			if (t.getCreatedDate() != null)
+				r.setCreatedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCreatedDate()));
+			if (t.getGateId() != null) {
+				r.setGateId(t.getGateId());
+				Optional<Gate> gate = gateRepository.findById(t.getGateId());
+				r.setGateName(gate.get().getGateName());
+			}
+			if (t.getIssuedBy() != null) {
+				r.setIssuedBy(t.getIssuedBy());
+				Optional<User> user = userRepository.findById(t.getIssuedBy());
+				r.setIssuedByUserName(user.get().getName());
+			}
+			if (t.getIssuedDate() != null)
+				r.setIssuedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getIssuedDate()));
+			if (t.getModifiedBy() != null) {
+				r.setModifiedBy(t.getModifiedBy());
+				Optional<User> user = userRepository.findById(t.getModifiedBy());
+				r.setModifiedByUserName(user.get().getName());
+			}
+			if (t.getModifiedDate() != null)
+				r.setModifiedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getModifiedDate()));
+			if (t.getPrice() != null)
+				r.setPrice(t.getPrice());
+			if (t.getStationId() != null) {
+				r.setStationId(t.getStationId());
+				Optional<Station> station=stationRepository.findById(t.getStationId());
+				r.setStationName(station.get().getStationName());
+			}
+				
+			if (t.getStationMaster() != null) {
+				r.setStationMaster(t.getStationMaster());
+				Optional<User> user = userRepository.findById(t.getStationMaster());
+				r.setStationMasterName(user.get().getName());
+				
+				}
+			if (t.getTicketStatus() != null)
+				r.setTicketStatus(t.getTicketStatus());
+			if (t.getUniqueId() != null)
+				r.setUniqueId(t.getUniqueId());
 			response.add(r);
 		}
 		return response;

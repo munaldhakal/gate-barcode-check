@@ -13,19 +13,70 @@ import com.gate.barcode.check.gatepass.utilities.TicketStatus;
 public class RecordResponse implements Serializable {
 	private Long ticketId;
 	private Long createdBy;
+	private String createdByUserName;
 	private String uniqueId;
 	private String price;
 	private Long stationMaster;
+	private String stationMasterName;
 	private Long stationId;
+	private String stationName;
 	private Long gateId;
+	private String gateName;
 	private String createdDate;
 	private Long modifiedBy;
+	private String modifiedByUserName;
 	private String modifiedDate;
 	private Long issuedBy;
+	private String issuedByUserName;
 	private Long checkedBy;
+	private String checkedByUserName;
 	private String issuedDate;
 	private String checkedDate;
 	private TicketStatus ticketStatus;
+	
+	
+	public String getCreatedByUserName() {
+		return createdByUserName;
+	}
+	public void setCreatedByUserName(String createdByUserName) {
+		this.createdByUserName = createdByUserName;
+	}
+	public String getStationMasterName() {
+		return stationMasterName;
+	}
+	public void setStationMasterName(String stationMasterName) {
+		this.stationMasterName = stationMasterName;
+	}
+	public String getStationName() {
+		return stationName;
+	}
+	public void setStationName(String stationName) {
+		this.stationName = stationName;
+	}
+	public String getGateName() {
+		return gateName;
+	}
+	public void setGateName(String gateName) {
+		this.gateName = gateName;
+	}
+	public String getModifiedByUserName() {
+		return modifiedByUserName;
+	}
+	public void setModifiedByUserName(String modifiedByUserName) {
+		this.modifiedByUserName = modifiedByUserName;
+	}
+	public String getIssuedByUserName() {
+		return issuedByUserName;
+	}
+	public void setIssuedByUserName(String issuedByUserName) {
+		this.issuedByUserName = issuedByUserName;
+	}
+	public String getCheckedByUserName() {
+		return checkedByUserName;
+	}
+	public void setCheckedByUserName(String checkedByUserName) {
+		this.checkedByUserName = checkedByUserName;
+	}
 	public Long getTicketId() {
 		return ticketId;
 	}

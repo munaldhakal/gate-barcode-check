@@ -74,8 +74,8 @@ public class GateController {
 	}
 
 	@ApiOperation(value = "Edit gate", notes = "Edit gates")
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<Object> editGate(@RequestBody GateEditRequest gateEditRequest, @PathVariable Long userId) {
+	@RequestMapping( method = RequestMethod.PUT)
+	public ResponseEntity<Object> editGate(@RequestBody GateEditRequest gateEditRequest, @RequestHeader Long userId) {
 		commonService.checkUserType(userId); // checks whether the user is an ADMIN or not.
 		gateService.editgate(gateEditRequest);
 		return new ResponseEntity<Object>("Edited Successfuly", HttpStatus.OK);

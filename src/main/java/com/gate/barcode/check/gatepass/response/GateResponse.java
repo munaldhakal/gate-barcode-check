@@ -5,7 +5,15 @@ public class GateResponse {
 	private Long id;
 	private String gateName;
 	private Long ticketChecker;
+	private String ticketCheckerName;
 	
+	
+	public String getTicketCheckerName() {
+		return ticketCheckerName;
+	}
+	public void setTicketCheckerName(String ticketCheckerName) {
+		this.ticketCheckerName = ticketCheckerName;
+	}
 	public Long getId() {
 		return id;
 	}

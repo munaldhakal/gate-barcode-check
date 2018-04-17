@@ -5,6 +5,14 @@ public class StationResponse {
 	private Long id;
 	private String stationName;
 	private Long stationMaster;
+	private String stationMasterName;
+	
+	public String getStationMasterName() {
+		return stationMasterName;
+	}
+	public void setStationMasterName(String stationMasterName) {
+		this.stationMasterName = stationMasterName;
+	}
 	public Long getId() {
 		return id;
 	}
