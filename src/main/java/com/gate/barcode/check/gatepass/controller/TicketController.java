@@ -1,6 +1,9 @@
 package com.gate.barcode.check.gatepass.controller;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,13 +36,21 @@ public class TicketController {
 	private TicketService ticketService;
 	@Autowired
 	private CommonService commonService;
-
+	private static String UPLOADED_FOLDER = "barcode";
+	
 	@ApiOperation(value = "Generate desired no. of barcode.", notes = "Generate desired no. of barcode")
 	@RequestMapping(value = "/genBarcode", method = RequestMethod.POST)
 	public ResponseEntity<Object> createsdBarcode(@RequestHeader Long userId,
 			@RequestBody BarcodeCreationRequest barcodeCreationRequest) throws Exception {
 		commonService.checkUserType(userId);
-		String barCodePath = "C:\\Users\\Lothbroke\\Desktop\\Softech\\barcode\\";
+		File directory = new File(UPLOADED_FOLDER);
+		File filePath = null;
+		if (!directory.exists()) {
+			directory.mkdir();
+		}
+		String barCodePath = directory.getPath().concat(File.separator);
+//		Path path = Paths
+//				.get(UPLOADED_FOLDER + "//");
 		long num = barcodeCreationRequest.getNoOfBarcode();
 		int firstIndex = -1;
 		int lastIndex = -1;
