@@ -304,4 +304,19 @@ public class TicketService {
 		return response;
 	}
 
+	/**
+	 *<<Deletes a ticket>>
+	 * @param id
+	 * @author Munal
+	 * @since 18/04/2018, Modified In: @version, By @author
+	 */
+	@Transactional
+	public void doDelete(Long id) {
+		Optional<Ticket> ticket = ticketRepository.findById(id);
+		if(!ticket.isPresent()) {
+			throw new ServiceException("No ticket Found Of Id: "+id);
+		}
+		ticketRepository.delete(ticket.get());
+	}
+
 }

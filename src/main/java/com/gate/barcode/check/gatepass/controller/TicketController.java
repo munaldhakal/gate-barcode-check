@@ -107,4 +107,10 @@ public class TicketController {
 		List<RecordResponse> response = ticketService.getReports(userId);
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
+	@RequestMapping(value="/{id}",method=RequestMethod.GET)
+	public ResponseEntity<Object> deleteTicket(@RequestHeader Long userId,@PathVariable Long id){
+		commonService.checkUserType(userId);
+		ticketService.doDelete(id);
+		return new ResponseEntity<Object>("Successfully Deleted", HttpStatus.OK);
+	}
 }
