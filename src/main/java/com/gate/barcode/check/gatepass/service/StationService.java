@@ -1,21 +1,27 @@
 package com.gate.barcode.check.gatepass.service;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gate.barcode.check.gatepass.exception.AlreadyExistException;
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
 import com.gate.barcode.check.gatepass.model.Station;
+import com.gate.barcode.check.gatepass.model.User;
 import com.gate.barcode.check.gatepass.repository.StationRepository;
+import com.gate.barcode.check.gatepass.repository.UserRepository;
 import com.gate.barcode.check.gatepass.request.StationCreationRequest;
 import com.gate.barcode.check.gatepass.request.StationEditRequest;
 import com.gate.barcode.check.gatepass.response.StationResponse;
+import com.gate.barcode.check.gatepass.utilities.UserType;
 
 /**
  * <<This is the service to handle gate operations>>
@@ -29,15 +35,22 @@ public class StationService {
 	@Autowired
 	private StationRepository stationRepository;
 
+	@Autowired
+	private UserRepository userRepository;
+
 	@Transactional
 	public void createStation(StationCreationRequest stationCreationRequest) {
-		Station station = stationRepository.findByStationName(stationCreationRequest.getStationName());
-		if (station != null) {
-
-			throw new AlreadyExistException(
-					"Station with name " + stationCreationRequest.getStationName() + " already exist.");
+		Station stations = stationRepository.findByStationMaster(stationCreationRequest.getStationMaster());
+		if (stations != null) {
+			throw new AlreadyExistException("Station Master with id " + stationCreationRequest.getStationMaster()
+					+ " is already asigned to some station");
 		}
-		station = new Station();
+
+		Optional<User> user = userRepository.findById(stationCreationRequest.getStationMaster());
+		if (!user.get().getUserType().equals(UserType.STATIONMASTER)) {
+			throw new ServiceException("You can only assign StationMaster");
+		}
+		Station station = new Station();
 		station.setStationName(stationCreationRequest.getStationName());
 		station.setStationMaster(stationCreationRequest.getStationMaster());
 		stationRepository.save(station);
@@ -53,6 +66,8 @@ public class StationService {
 			stationResponse.setId(u.getId());
 			stationResponse.setStationMaster(u.getStationMaster());
 			stationResponse.setStationName(u.getStationName());
+			Optional<User> user = userRepository.findById(u.getStationMaster());
+			stationResponse.setStationMasterName(user.get().getName());
 			stationResponseList.add(stationResponse);
 		});
 		return stationResponseList;
@@ -69,6 +84,8 @@ public class StationService {
 		stationResponse.setId(id);
 		stationResponse.setStationMaster(station.get().getStationMaster());
 		stationResponse.setStationName(station.get().getStationName());
+		Optional<User> user = userRepository.findById(station.get().getStationMaster());
+		stationResponse.setStationMasterName(user.get().getName());
 		return stationResponse;
 	}
 
@@ -89,10 +106,10 @@ public class StationService {
 		if (!station.isPresent()) {
 			throw new NotFoundException("Station with id " + stationEditRequest.getId() + " not found.");
 		}
-		if(stationEditRequest.getStationMaster()!=null)
-		station.get().setStationMaster(stationEditRequest.getStationMaster());
-		if(stationEditRequest.getStationName()!=null)
-		station.get().setStationName(stationEditRequest.getStationName());
+		if (stationEditRequest.getStationMaster() != null)
+			station.get().setStationMaster(stationEditRequest.getStationMaster());
+		if (stationEditRequest.getStationName() != null)
+			station.get().setStationName(stationEditRequest.getStationName());
 		stationRepository.save(station.get());
 
 	}

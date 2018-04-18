@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,14 +34,21 @@ public class GateService {
 	@Autowired
 	private GateRepository gateRepository;
 
+	@Autowired
+	private UserRepository userRepository;
+
 	@Transactional
 	public void createGate(GateCreationRequest gateCreationRequest) {
-		Gate gate = gateRepository.findByGateName(gateCreationRequest.getGateName());
-		if (gate != null) {
-			throw new AlreadyExistException("Gate with name"
-					+ gateCreationRequest.getGateName() + " already exist.");
+		Gate gates = gateRepository.findByTicketChecker(gateCreationRequest.getTicketChecker());
+		if (gates != null) {
+			throw new ServiceException("Ticket checker with id "+gateCreationRequest.getTicketChecker()+" has been already assigned to some gate.");
 		}
-		gate = new Gate();
+		Optional<User> user=userRepository.findById(gateCreationRequest.getTicketChecker());
+		if(!user.get().getUserType().equals(UserType.TICKETCHECKER)) {
+			throw new ServiceException("You can only assign TicketChecker.");
+			
+		}
+		Gate gate = new Gate();
 
 		gate.setGateName(gateCreationRequest.getGateName());
 		gate.setTicketChecker(gateCreationRequest.getTicketChecker());
@@ -57,6 +65,8 @@ public class GateService {
 			gateResponse.setId(u.getId());
 			gateResponse.setGateName(u.getGateName());
 			gateResponse.setTicketChecker(u.getTicketChecker());
+			Optional<User> user = userRepository.findById(u.getTicketChecker());
+			gateResponse.setTicketCheckerName(user.get().getName());
 			gateResponseList.add(gateResponse);
 		});
 		;
@@ -73,6 +83,8 @@ public class GateService {
 		gateResponse.setId(gate.get().getId());
 		gateResponse.setGateName(gate.get().getGateName());
 		gateResponse.setTicketChecker(gate.get().getTicketChecker());
+		Optional<User> user = userRepository.findById(gate.get().getTicketChecker());
+		gateResponse.setTicketCheckerName(user.get().getName());
 
 		return gateResponse;
 	}
@@ -91,8 +103,7 @@ public class GateService {
 
 		Optional<Gate> gate = gateRepository.findById(gateEditRequest.getId());
 		if (!gate.isPresent()) {
-			throw new NotFoundException(
-					"Gate with id=" + gateEditRequest.getId() + " not found.");
+			throw new NotFoundException("Gate with id=" + gateEditRequest.getId() + " not found.");
 
 		}
 		if (gateEditRequest.getGateName() != null)

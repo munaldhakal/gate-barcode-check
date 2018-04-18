@@ -17,4 +17,6 @@ public interface GateRepository extends JpaRepository<Gate, Long> {
 
 	Gate findByGateName(String gatename);
 
+	Gate findByTicketChecker(Long ticketChecker);
+
 }
