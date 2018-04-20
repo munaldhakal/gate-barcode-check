@@ -50,8 +50,8 @@ public class GateController {
 
 	@ApiOperation(value = "Get all gates", notes = "get all gates")
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<Object> getAllGates(@RequestHeader Long userId) {
-		commonService.checkUserType(userId); // checks whether the user is an ADMIN or not.
+	public ResponseEntity<Object> getAllGates() {
+	//	commonService.checkUserType(userId); // checks whether the user is an ADMIN or not.
 		List<GateResponse> gateResponseList = gateService.getAllGates();
 		return new ResponseEntity<Object>(gateResponseList, HttpStatus.OK);
 	}

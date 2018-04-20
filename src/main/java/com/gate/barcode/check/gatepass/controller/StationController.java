@@ -50,8 +50,8 @@ public class StationController {
 
 	@ApiOperation(value = "Get all Station", notes = "Get all stations")
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<Object> getAllStations(@RequestHeader Long userId) {
-		commonService.checkUserType(userId);
+	public ResponseEntity<Object> getAllStations() {
+		//commonService.checkUserType(userId);
 		List<StationResponse> stationResponseList = stationService.getAllStation();
 		return new ResponseEntity<Object>(stationResponseList, HttpStatus.OK);
 

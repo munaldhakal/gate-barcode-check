@@ -24,10 +24,12 @@ import org.springframework.stereotype.Service;
 
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
 import com.gate.barcode.check.gatepass.model.Gate;
+import com.gate.barcode.check.gatepass.model.Price;
 import com.gate.barcode.check.gatepass.model.Station;
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.model.User;
 import com.gate.barcode.check.gatepass.repository.GateRepository;
+import com.gate.barcode.check.gatepass.repository.PriceRepository;
 import com.gate.barcode.check.gatepass.repository.StationRepository;
 import com.gate.barcode.check.gatepass.repository.TicketRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
@@ -77,7 +79,6 @@ public class TicketService {
 			bean.generateBarcode(canvas, uniqueID);
 			String path = outputFile.getAbsolutePath();
 			ticket.setBarcode(path);
-
 			ticket.setTicketStatus(TicketStatus.UNVERIFIED);
 			ticket.setCreatedBy(userId);
 			ticket.setCreatedDate(new Date());
@@ -140,8 +141,9 @@ public class TicketService {
 		}
 		if (tickets == null)
 			throw new NotFoundException("No Tickets Found.. Please Create One");
+		int count = 0;
 		List<TicketResponse> ticketResponseList = new ArrayList<TicketResponse>();
-		tickets.stream().forEach(u -> {
+		for(Ticket u : tickets) {
 			TicketResponse ticketResponse = new TicketResponse();
 			ticketResponse.setId(u.getId());
 			String file = u.getBarcode();
@@ -154,7 +156,10 @@ public class TicketService {
 				e.printStackTrace();
 			}
 			ticketResponseList.add(ticketResponse);
-		});
+			count++;
+			if(count==1000)
+				break;
+		}
 		return ticketResponseList;
 
 	}
@@ -263,6 +268,7 @@ public class TicketService {
 			ticket = ticketRepository.findAll();
 		if (ticket == null)
 			throw new ServiceException("No tickets Found");
+		int count = 0;
 		List<RecordResponse> response = new ArrayList<>();
 		for (Ticket t : ticket) {
 			RecordResponse r = new RecordResponse();
@@ -270,6 +276,7 @@ public class TicketService {
 			if (t.getCheckedBy() != null) {
 				r.setCheckedBy(t.getCheckedBy());
 				Optional<User> user = userRepository.findById(t.getCheckedBy());
+				if(user.isPresent())
 				r.setCheckedByUserName(user.get().getName());
 			}
 
@@ -278,6 +285,7 @@ public class TicketService {
 			if (t.getCreatedBy() != null) {
 				r.setCreatedBy(t.getCreatedBy());
 				Optional<User> user = userRepository.findById(t.getCreatedBy());
+				if(user.isPresent())
 				r.setCreatedByUserName(user.get().getName());
 
 			}
@@ -286,11 +294,13 @@ public class TicketService {
 			if (t.getGateId() != null) {
 				r.setGateId(t.getGateId());
 				Optional<Gate> gate = gateRepository.findById(t.getGateId());
+				if(gate.isPresent())
 				r.setGateName(gate.get().getGateName());
 			}
 			if (t.getIssuedBy() != null) {
 				r.setIssuedBy(t.getIssuedBy());
 				Optional<User> user = userRepository.findById(t.getIssuedBy());
+				if(user.isPresent())
 				r.setIssuedByUserName(user.get().getName());
 			}
 			if (t.getIssuedDate() != null)
@@ -298,6 +308,7 @@ public class TicketService {
 			if (t.getModifiedBy() != null) {
 				r.setModifiedBy(t.getModifiedBy());
 				Optional<User> user = userRepository.findById(t.getModifiedBy());
+				if(user.isPresent())
 				r.setModifiedByUserName(user.get().getName());
 			}
 			if (t.getModifiedDate() != null)
@@ -307,12 +318,14 @@ public class TicketService {
 			if (t.getStationId() != null) {
 				r.setStationId(t.getStationId());
 				Optional<Station> station=stationRepository.findById(t.getStationId());
+				if(station.isPresent())
 				r.setStationName(station.get().getStationName());
 			}
 				
 			if (t.getStationMaster() != null) {
 				r.setStationMaster(t.getStationMaster());
 				Optional<User> user = userRepository.findById(t.getStationMaster());
+				if(user.isPresent())
 				r.setStationMasterName(user.get().getName());
 				
 				}
@@ -321,6 +334,9 @@ public class TicketService {
 			if (t.getUniqueId() != null)
 				r.setUniqueId(t.getUniqueId());
 			response.add(r);
+			count++;
+			if(count==1000)
+				break;
 		}
 		return response;
 	}
@@ -337,6 +353,7 @@ public class TicketService {
 		if(!ticket.isPresent()) {
 			throw new ServiceException("No ticket Found Of Id: "+id);
 		}
+		System.out.println("Deleted Id :--->>>>>>>>>>>>"+ticket.get().getId());
 		ticketRepository.delete(ticket.get());
 	}
 

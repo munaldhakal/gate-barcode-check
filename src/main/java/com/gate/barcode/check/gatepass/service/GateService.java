@@ -44,10 +44,13 @@ public class GateService {
 			throw new ServiceException("Ticket checker with id "+gateCreationRequest.getTicketChecker()+" has been already assigned to some gate.");
 		}
 		Optional<User> user=userRepository.findById(gateCreationRequest.getTicketChecker());
+		if(user.isPresent()) {
 		if(!user.get().getUserType().equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("You can only assign TicketChecker.");
 			
 		}
+		}else
+			throw new ServiceException("No TicketCheckor found of ID : "+gateCreationRequest.getTicketChecker());
 		Gate gate = new Gate();
 
 		gate.setGateName(gateCreationRequest.getGateName());
@@ -60,12 +63,15 @@ public class GateService {
 	public List<GateResponse> getAllGates() {
 		List<GateResponse> gateResponseList = new ArrayList<GateResponse>();
 		List<Gate> gates = gateRepository.findAll();
+		if(gates.size()==0)
+			throw new ServiceException("Sorry No Gates Found");
 		gates.stream().forEach(u -> {
 			GateResponse gateResponse = new GateResponse();
 			gateResponse.setId(u.getId());
 			gateResponse.setGateName(u.getGateName());
 			gateResponse.setTicketChecker(u.getTicketChecker());
 			Optional<User> user = userRepository.findById(u.getTicketChecker());
+			if(user.isPresent())
 			gateResponse.setTicketCheckerName(user.get().getName());
 			gateResponseList.add(gateResponse);
 		});
@@ -84,6 +90,7 @@ public class GateService {
 		gateResponse.setGateName(gate.get().getGateName());
 		gateResponse.setTicketChecker(gate.get().getTicketChecker());
 		Optional<User> user = userRepository.findById(gate.get().getTicketChecker());
+		if(user.isPresent())
 		gateResponse.setTicketCheckerName(user.get().getName());
 
 		return gateResponse;

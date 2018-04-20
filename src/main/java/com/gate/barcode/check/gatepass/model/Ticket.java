@@ -29,14 +29,10 @@ public class Ticket implements Serializable {
 	private Long stationMaster;
 	private Long stationId;
 	private Long gateId;
-
-	// private Long gateId;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name = "createdDate")
 	private Date createdDate;
 	private Long modifiedBy;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name = "modifiedDate")
 	private Date modifiedDate;
@@ -50,14 +46,6 @@ public class Ticket implements Serializable {
 	private Date checkedDate;
 	@Enumerated(EnumType.STRING)
 	private TicketStatus ticketStatus;
-
-	// public Long getGateId() {
-	// return gateId;
-	// }
-	//
-	// public void setGateId(Long gateId) {
-	// this.gateId = gateId;
-	// }
 
 	public Long getId() {
 		return id;

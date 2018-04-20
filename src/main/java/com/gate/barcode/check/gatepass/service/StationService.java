@@ -61,12 +61,15 @@ public class StationService {
 	public List<StationResponse> getAllStation() {
 		List<StationResponse> stationResponseList = new ArrayList<StationResponse>();
 		List<Station> stations = stationRepository.findAll();
+		if(stations.size()==0)
+			throw new ServiceException("Sorry No Station found");
 		stations.stream().forEach(u -> {
 			StationResponse stationResponse = new StationResponse();
 			stationResponse.setId(u.getId());
 			stationResponse.setStationMaster(u.getStationMaster());
 			stationResponse.setStationName(u.getStationName());
 			Optional<User> user = userRepository.findById(u.getStationMaster());
+			if(user.isPresent())
 			stationResponse.setStationMasterName(user.get().getName());
 			stationResponseList.add(stationResponse);
 		});
@@ -76,7 +79,7 @@ public class StationService {
 	@Transactional
 	public StationResponse getStation(Long id) {
 		Optional<Station> station = stationRepository.findById(id);
-		if (station == null) {
+		if (!station.isPresent()) {
 			throw new NotFoundException("Station with id " + id + " not found.");
 
 		}
@@ -85,6 +88,7 @@ public class StationService {
 		stationResponse.setStationMaster(station.get().getStationMaster());
 		stationResponse.setStationName(station.get().getStationName());
 		Optional<User> user = userRepository.findById(station.get().getStationMaster());
+		if(user.isPresent())
 		stationResponse.setStationMasterName(user.get().getName());
 		return stationResponse;
 	}
