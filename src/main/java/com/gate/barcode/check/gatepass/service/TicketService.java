@@ -6,10 +6,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -20,16 +24,18 @@ import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import com.gate.barcode.check.gatepass.dto.DeleteTicketsRequest;
 import com.gate.barcode.check.gatepass.exception.NotFoundException;
 import com.gate.barcode.check.gatepass.model.Gate;
-import com.gate.barcode.check.gatepass.model.Price;
 import com.gate.barcode.check.gatepass.model.Station;
 import com.gate.barcode.check.gatepass.model.Ticket;
 import com.gate.barcode.check.gatepass.model.User;
 import com.gate.barcode.check.gatepass.repository.GateRepository;
-import com.gate.barcode.check.gatepass.repository.PriceRepository;
 import com.gate.barcode.check.gatepass.repository.StationRepository;
 import com.gate.barcode.check.gatepass.repository.TicketRepository;
 import com.gate.barcode.check.gatepass.repository.UserRepository;
@@ -81,10 +87,12 @@ public class TicketService {
 			ticket.setBarcode(path);
 			ticket.setTicketStatus(TicketStatus.UNVERIFIED);
 			ticket.setCreatedBy(userId);
-			ticket.setCreatedDate(new Date());
+			ticket.setCreaterName(userRepository.getOne(userId).getName());
+			ticket.setCreatedDate(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
 			ticket.setPrice(barcodeCreationRequest.getPrice());
 			ticket.setUniqueId(uniqueID);
-			ticket.setStationMaster(barcodeCreationRequest.getStationMaster());
+			ticket.setStationMasterId(barcodeCreationRequest.getStationMaster());
+			ticket.setStationMasterName(userRepository.getOne(ticket.getStationMasterId()).getName());
 			ticket = ticketRepository.save(ticket);
 
 			canvas.finish();
@@ -129,39 +137,22 @@ public class TicketService {
 		throw new IOException("Could not completely read file " + file.getName());
 	}
 
-	@Transactional
-	public List<TicketResponse> getAllBarcode(Long userId) {
-		List<Ticket> tickets = null;
-		if (commonService.getUserType(userId).equals(UserType.ADMIN)) {
-			tickets = ticketRepository.findAllByTicketStatus(TicketStatus.UNVERIFIED);
-		} else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
-			throw new ServiceException("Sorry You Are not Authorized");
-		} else {
-			tickets = ticketRepository.findAllByStationMasterAndTicketStatus(userId, TicketStatus.UNVERIFIED);
-		}
-		if (tickets == null)
-			throw new NotFoundException("No Tickets Found.. Please Create One");
-		int count = 0;
-		List<TicketResponse> ticketResponseList = new ArrayList<TicketResponse>();
-		for(Ticket u : tickets) {
-			TicketResponse ticketResponse = new TicketResponse();
-			ticketResponse.setId(u.getId());
-			String file = u.getBarcode();
-			File outputFile = new File(file);
-			ticketResponse.setPrice(u.getPrice());
-			try {
-				String encodstring = encodeFileToBase64Binary(outputFile);
-				ticketResponse.setBarcode(encodstring);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			ticketResponseList.add(ticketResponse);
-			count++;
-			if(count==1000)
-				break;
-		}
-		return ticketResponseList;
+	
 
+	private TicketResponse getTicket(Ticket u) {
+		TicketResponse ticketResponse = new TicketResponse();
+		ticketResponse.setId(u.getId());
+		String file = u.getBarcode();
+		File outputFile = new File(file);
+		ticketResponse.setPrice(u.getPrice());
+		try {
+			String encodstring = encodeFileToBase64Binary(outputFile);
+			ticketResponse.setBarcode(encodstring);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		ticketResponse.setUniqueId(u.getUniqueId());
+		return ticketResponse;
 	}
 
 	public TicketResponse getBarcode(Long userId, Long id) {
@@ -171,58 +162,75 @@ public class TicketService {
 		else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
 			throw new ServiceException("Sorry You Are not Authorized");
 		} else {
-			ticket = ticketRepository.findByStationMaster(userId);
+			ticket = ticketRepository.findByStationMasterId(userId);
 		}
 		if (!ticket.isPresent()) {
 			throw new NotFoundException("Barcode with id=" + id + " not found. Try with different ID.");
 		}
-		TicketResponse ticketResponse = new TicketResponse();
-		ticketResponse.setId(ticket.get().getId());
-		ticketResponse.setPrice(ticket.get().getPrice());
-		String file = ticket.get().getBarcode();
-		File outputFile = new File(file);
-		try {
-			String encodstring = encodeFileToBase64Binary(outputFile);
-			ticketResponse.setBarcode(encodstring);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return ticketResponse;
-
+		return getTicket(ticket.get());
 	}
 
-	public Boolean checkBarcode(String uniqueId, Long userId, Long stationId, Long gateId) {
+	public String checkBarcode(String uniqueId, Long userId, Long stationId, Long gateId, String stationName,
+			String gateName) {
 		Optional<User> user = userRepository.findById(userId);
 		if (!user.isPresent()) {
-			throw new NotFoundException("User with id:" + userId + " not found.");
+			throw new ServiceException("User with id:" + userId + " not found.");
 		}
 		Ticket ticket = ticketRepository.findByUniqueIdAndTicketStatusNot(uniqueId, TicketStatus.BLOCKED);
 		if (ticket == null) {
-			throw new ServiceException("Sorry ticket is no more valid.");
+			System.out.println("Inside if");
+			throw new ServiceException("Sorry ticket is no more valid");
+
 		}
 		if (ticket.getTicketStatus().equals(TicketStatus.UNVERIFIED)
 				&& (commonService.getUserType(userId).equals(UserType.ADMIN)
 						|| commonService.getUserType(userId).equals(UserType.STATIONMASTER))) {
 			ticket.setTicketStatus(TicketStatus.VERIFIED);
 			ticket.setIssuedBy(userId);
-			ticket.setIssuedDate(new Date());
-			if (stationId != null)
+			ticket.setIssuerName(userRepository.getOne(userId).getName());
+			ticket.setIssuedDate(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+			if (stationId != null) {
+				Optional<Station> st = stationRepository.findById(stationId);
+				if (!st.isPresent())
+					throw new ServiceException("Sorry no station selected");
 				ticket.setStationId(stationId);
-			else
+				ticket.setStationName(st.get().getStationName());
+			} else if (stationName != null) {
+				Station st = stationRepository.findByStationName(stationName);
+				if (st == null)
+					throw new ServiceException("Sorry No station selected");
+				ticket.setStationId(st.getId());
+				ticket.setStationName(stationName);
+			} else {
 				throw new ServiceException("Please Select a station");
+			}
 			ticketRepository.save(ticket);
-			return true;
+			return "TICKET VERIFIED SUCCESSFULLY";
 		}
 		if (ticket.getTicketStatus().equals(TicketStatus.VERIFIED)) {
 			ticket.setTicketStatus(TicketStatus.BLOCKED);
 			ticket.setCheckedBy(userId);
-			if (gateId != null)
+			ticket.setCheckerName(userRepository.getOne(userId).getName());
+			if (gateId != null) {
+				Optional<Gate> gt = gateRepository.findById(gateId);
+				if (!gt.isPresent())
+					throw new ServiceException("Sorry no gate selected");
 				ticket.setGateId(gateId);
-			ticket.setCheckedDate(new Date());
+				ticket.setGateName(gt.get().getGateName());
+			} else if (gateName != null) {
+				Gate gt = gateRepository.findByGateName(gateName);
+				if (gt == null)
+					throw new ServiceException("Sorry No gate found of name :" + gateName);
+				ticket.setGateId(gt.getId());
+				ticket.setGateName(gateName);
+			} else {
+				throw new ServiceException("Please select a gate");
+			}
+			ticket.setCheckedDate(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
 			ticketRepository.save(ticket);
-			return true;
+			return "TICKET BLOCKED SUCCESSFULLY";
 		}
-		return false;
+		throw new ServiceException("ERROR PLEASE TRY AGAIN");
 	}
 
 	/**
@@ -234,115 +242,323 @@ public class TicketService {
 	 * @since 12/04/2018, Modified In: @version, By @author
 	 */
 	@Transactional
-	public void assignTickets(Long userId, AssignTicketsRequest request) {
+	public String assignTickets(Long userId, AssignTicketsRequest request) {
+		if(request.getIdFrom()>request.getIdTo())
+			throw new ServiceException("Wrong Formaat: Please Correct as E.G=> From :1 To:100");
+		if(request.getIdTo()>getLastIndex())
+			throw new ServiceException("Sorry. You cannot assign Ids which are not created. Please Check 'ID TO'");
 		commonService.checkUserType(userId);
+		Double count = Double.valueOf("0");
 		for (Long i = request.getIdFrom(); i <= request.getIdTo(); i++) {
-			Ticket ticket = ticketRepository.getOne(i);
+			Ticket ticket = ticketRepository.findByIdAndTicketStatus(i, TicketStatus.UNVERIFIED);
 			if (ticket == null)
 				continue;
 			ticket.setModifiedBy(userId);
-			ticket.setModifiedDate(new Date());
+			ticket.setModifierName(userRepository.getOne(userId).getName());
+			ticket.setModifiedDate(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
 			if (request.getPrice() != null)
 				ticket.setPrice(request.getPrice());
-			ticket.setStationMaster(request.getStationMaster());
+			ticket.setStationMasterId(request.getStationMaster());
+			ticket.setStationMasterName(userRepository.getOne(ticket.getStationMasterId()).getName());
+			count++;
 			ticketRepository.save(ticket);
 		}
+		return new BigDecimal(String.valueOf(count)).toPlainString();
 	}
+	
+	@Transactional
+	public String deleteTickets(Long userId, DeleteTicketsRequest request) {
+		if(request.getIdFrom()>request.getIdTo())
+			throw new ServiceException("Wrong Formaat: Please Correct as E.G=> From :1 To:100");
+		if(request.getIdTo()>getLastIndex())
+			throw new ServiceException("Sorry. You cannot assign Ids which are not created. Please Check 'ID TO'");
+		commonService.checkUserType(userId);
+		Double count = Double.valueOf("0");
+		for (Long i = request.getIdFrom(); i <= request.getIdTo(); i++) {
+			Optional<Ticket> ticket = ticketRepository.findById(i);
+			if (!ticket.isPresent()) 
+				continue;
+			count++;
+			System.out.println("Deleted Id :--->>>>>>>>>>>>" + ticket.get().getId());
+			ticketRepository.delete(ticket.get());
+		}
+		return new BigDecimal(String.valueOf(count)).toPlainString();
+	}
+	@SuppressWarnings("deprecation")
+	@Transactional
+	public Map<Object,Object> getAllBarcode(Long userId, String search, int searchValue, Direction sort, int page,
+			int size) {
+		if (sort == null) {
+			sort = Direction.DESC;
+		}
+		Page<Ticket> tickets = null;
+		if (commonService.getUserType(userId).equals(UserType.ADMIN)) {
+			if (search == null || search.isEmpty() || search == "")
+				tickets = ticketRepository.findAllByTicketStatus(TicketStatus.UNVERIFIED,new PageRequest(page, size, Direction.DESC, "createdDate"));
+			else {
+				if(searchValue==1)
+					tickets = ticketRepository.findAllByIdAndTicketStatus(Long.valueOf(search),TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else if(searchValue==2)
+					tickets = ticketRepository.findAllByPriceAndTicketStatus(search,TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else if(searchValue==3)
+					tickets = ticketRepository.findAllByUniqueIdAndTicketStatus(search,TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else
+					throw new ServiceException("Please select appropriate searchValue");
+			}
+		} else if (commonService.getUserType(userId).equals(UserType.TICKETCHECKER)) {
+			throw new ServiceException("Sorry You Are not Authorized");
+		} else {
+			if (search == null || search.isEmpty() || search == "")
+				tickets = ticketRepository.findAllByStationMasterIdAndTicketStatus(userId, TicketStatus.UNVERIFIED,new PageRequest(page, size, Direction.DESC, "createdDate"));
+			else {
+				if(searchValue==1)
+					tickets = ticketRepository.findAllByIdAndStationMasterIdAndTicketStatus(Long.valueOf(search),userId, TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else if(searchValue==2)
+					tickets = ticketRepository.findAllByPriceAndStationMasterIdAndTicketStatus(search,userId, TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else if(searchValue==3)
+					tickets = ticketRepository.findAllByUniqueIdAndStationMasterIdAndTicketStatus(search,userId, TicketStatus.UNVERIFIED,new PageRequest(page, size, sort, getTicketSearchIndex(searchValue)));
+				else
+					throw new ServiceException("Please select appropriate searchValue");
+			}
+		}
+		if (tickets == null)
+			throw new NotFoundException("No Tickets Found.. Please Create One");
+		List<TicketResponse> ticketResponseList = new ArrayList<TicketResponse>();
+		for (Ticket u : tickets) {
+			ticketResponseList.add(getTicket(u));
+		}
+		Map<Object, Object> responseMap = new HashMap<Object, Object>();
+		responseMap.put("response", ticketResponseList);
+		responseMap.put("noOfItems", tickets.getNumberOfElements());
+		responseMap.put("totalNoOfItems", tickets.getTotalElements());
+		responseMap.put("noOfPages", tickets.getTotalPages());
+		responseMap.put("pageNumber", tickets.getNumber());
+		return responseMap;
 
+	}
+	
 	/**
 	 * <<This method returns the records for the users>>
 	 * 
 	 * @param userId
 	 * @return List<RecordResponse>
 	 * @author Munal
+	 * @param size
+	 * @param page
+	 * @param sort
+	 * @param searchValue
+	 * @param search
+	 * @throws ParseException 
 	 * @since 16/04/2018, Modified In: @version, By @author
 	 */
-	public List<RecordResponse> getReports(Long userId) {
+	@SuppressWarnings("deprecation")
+	public Map<Object, Object> getReports(Long userId, String search, int searchValue, Direction sort, int page,
+			int size) throws ParseException {
+		System.out.println("Date----->>>>>>>>>>>>>>>>>>>>"+search);
 		UserType type = commonService.getUserType(userId);
-		List<Ticket> ticket = null;
+		if (sort == null) {
+			sort = Direction.DESC;
+		}
+		Page<Ticket> ticket = null;
 		if (type.equals(UserType.TICKETCHECKER)) {
-			ticket = ticketRepository.findByCheckedBy(userId);
+			if (search == null || search.isEmpty() || search == "")
+				ticket = ticketRepository.findByCheckedBy(userId,
+						new PageRequest(page, size, Direction.DESC, "issuedDate"));
+			else {
+				if(searchValue==1)
+					ticket = ticketRepository.findByIdAndCheckedBy(Long.valueOf(search),userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==2)
+					ticket = ticketRepository.findByPriceAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==3)
+					ticket = ticketRepository.findByTicketStatusAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==4)
+					ticket = ticketRepository.findByStationNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==5)
+					ticket = ticketRepository.findByStationMasterNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==6)
+					ticket = ticketRepository.findByGateNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==7)
+					ticket = ticketRepository.findByCreaterNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==8) {
+					ticket = ticketRepository.findByCreatedDateAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				}
+				else if(searchValue==9)
+					ticket = ticketRepository.findByIssuerNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==10)
+					ticket = ticketRepository.findByIssuedDateAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==11)
+					ticket = ticketRepository.findByCheckerNameAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==12)
+					ticket = ticketRepository.findByCheckedDateAndCheckedBy(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else 
+					throw new ServiceException("Please Selsect appropriate selectValue");
+			}
 		} else if (type.equals(UserType.STATIONMASTER)) {
-			ticket = ticketRepository.findAllByStationMaster(userId);
-		} else
-			ticket = ticketRepository.findAll();
+			if (search == null || search.isEmpty() || search == "")
+				ticket = ticketRepository.findByStationMasterId(userId,
+						new PageRequest(page, size, Direction.DESC, "issuedDate"));
+			else {
+				if(searchValue==1)
+					ticket = ticketRepository.findByIdAndStationMasterId(Long.valueOf(search),userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==2)
+					ticket = ticketRepository.findByPriceAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==3)
+					ticket = ticketRepository.findByTicketStatusAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==4)
+					ticket = ticketRepository.findByStationNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==5)
+					ticket = ticketRepository.findByStationMasterNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==6)
+					ticket = ticketRepository.findByGateNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==7)
+					ticket = ticketRepository.findByCreaterNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==8)
+					ticket = ticketRepository.findByCreatedDateAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==9)
+					ticket = ticketRepository.findByIssuerNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==10)
+					ticket = ticketRepository.findByIssuedDateAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==11)
+					ticket = ticketRepository.findByCheckerNameAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==12)
+					ticket = ticketRepository.findByCheckedDateAndStationMasterId(search,userId,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else 
+					throw new ServiceException("Please Selsect appropriate selectValue");
+			}
+		} else {
+			if (search == null || search.isEmpty() || search == "")
+				ticket = ticketRepository.findAll(new PageRequest(page, size, Direction.DESC, "issuedDate"));
+			else {
+				if(searchValue==1)
+					ticket = ticketRepository.findById(Long.valueOf(search),
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==2)
+					ticket = ticketRepository.findByPrice(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==3)
+					ticket = ticketRepository.findByTicketStatus(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==4)
+					ticket = ticketRepository.findByStationName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==5)
+					ticket = ticketRepository.findByStationMasterName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==6)
+					ticket = ticketRepository.findByGateName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==7)
+					ticket = ticketRepository.findByCreaterName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==8)
+					ticket = ticketRepository.findByCreatedDate(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==9)
+					ticket = ticketRepository.findByIssuerName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==10)
+					ticket = ticketRepository.findByIssuedDate(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==11)
+					ticket = ticketRepository.findByCheckerName(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else if(searchValue==12)
+					ticket = ticketRepository.findByCheckedDate(search,
+							new PageRequest(page, size, sort, getSearchIndexParameter(searchValue)));
+				else 
+					throw new ServiceException("Please Selsect appropriate selectValue");
+			}
+		}
 		if (ticket == null)
 			throw new ServiceException("No tickets Found");
-		int count = 0;
+
 		List<RecordResponse> response = new ArrayList<>();
 		for (Ticket t : ticket) {
 			RecordResponse r = new RecordResponse();
 			r.setTicketId(t.getId());
 			if (t.getCheckedBy() != null) {
 				r.setCheckedBy(t.getCheckedBy());
-				Optional<User> user = userRepository.findById(t.getCheckedBy());
-				if(user.isPresent())
-				r.setCheckedByUserName(user.get().getName());
+				r.setCheckedByUserName(t.getCheckerName());
 			}
 
 			if (t.getCheckedDate() != null)
-				r.setCheckedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCheckedDate()));
+				r.setCheckedDate(t.getCheckedDate());
 			if (t.getCreatedBy() != null) {
 				r.setCreatedBy(t.getCreatedBy());
-				Optional<User> user = userRepository.findById(t.getCreatedBy());
-				if(user.isPresent())
-				r.setCreatedByUserName(user.get().getName());
+				r.setCreatedByUserName(t.getCreaterName());
 
 			}
 			if (t.getCreatedDate() != null)
-				r.setCreatedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getCreatedDate()));
+				r.setCreatedDate(t.getCreatedDate());
 			if (t.getGateId() != null) {
 				r.setGateId(t.getGateId());
-				Optional<Gate> gate = gateRepository.findById(t.getGateId());
-				if(gate.isPresent())
-				r.setGateName(gate.get().getGateName());
+				r.setGateName(t.getGateName());
 			}
 			if (t.getIssuedBy() != null) {
 				r.setIssuedBy(t.getIssuedBy());
-				Optional<User> user = userRepository.findById(t.getIssuedBy());
-				if(user.isPresent())
-				r.setIssuedByUserName(user.get().getName());
+				r.setIssuedByUserName(t.getIssuerName());
 			}
 			if (t.getIssuedDate() != null)
-				r.setIssuedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getIssuedDate()));
+				r.setIssuedDate(t.getIssuedDate());
 			if (t.getModifiedBy() != null) {
 				r.setModifiedBy(t.getModifiedBy());
-				Optional<User> user = userRepository.findById(t.getModifiedBy());
-				if(user.isPresent())
-				r.setModifiedByUserName(user.get().getName());
+				r.setModifiedByUserName(t.getModifierName());
 			}
 			if (t.getModifiedDate() != null)
-				r.setModifiedDate(new SimpleDateFormat("dd-MM-yyyy").format(t.getModifiedDate()));
+				r.setModifiedDate(t.getModifiedDate());
 			if (t.getPrice() != null)
 				r.setPrice(t.getPrice());
 			if (t.getStationId() != null) {
 				r.setStationId(t.getStationId());
-				Optional<Station> station=stationRepository.findById(t.getStationId());
-				if(station.isPresent())
-				r.setStationName(station.get().getStationName());
+				r.setStationName(t.getStationName());
 			}
-				
-			if (t.getStationMaster() != null) {
-				r.setStationMaster(t.getStationMaster());
-				Optional<User> user = userRepository.findById(t.getStationMaster());
-				if(user.isPresent())
-				r.setStationMasterName(user.get().getName());
-				
-				}
+
+			if (t.getStationMasterId() != null) {
+				r.setStationMaster(t.getStationMasterId());
+				r.setStationMasterName(t.getStationMasterName());
+			}
 			if (t.getTicketStatus() != null)
 				r.setTicketStatus(t.getTicketStatus());
 			if (t.getUniqueId() != null)
 				r.setUniqueId(t.getUniqueId());
 			response.add(r);
-			count++;
-			if(count==1000)
-				break;
 		}
-		return response;
+		Map<Object, Object> responseMap = new HashMap<Object, Object>();
+		responseMap.put("response", response);
+		responseMap.put("noOfItems", ticket.getNumberOfElements());
+		responseMap.put("totalNoOfItems", ticket.getTotalElements());
+		responseMap.put("noOfPages", ticket.getTotalPages());
+		responseMap.put("pageNumber", ticket.getNumber());
+		return responseMap;
 	}
 
 	/**
-	 *<<Deletes a ticket>>
+	 * <<Deletes a ticket>>
+	 * 
 	 * @param id
 	 * @author Munal
 	 * @since 18/04/2018, Modified In: @version, By @author
@@ -350,11 +566,57 @@ public class TicketService {
 	@Transactional
 	public void doDelete(Long id) {
 		Optional<Ticket> ticket = ticketRepository.findById(id);
-		if(!ticket.isPresent()) {
-			throw new ServiceException("No ticket Found Of Id: "+id);
+		if (!ticket.isPresent()) {
+			throw new ServiceException("No ticket Found Of Id: " + id);
 		}
-		System.out.println("Deleted Id :--->>>>>>>>>>>>"+ticket.get().getId());
+		System.out.println("Deleted Id :--->>>>>>>>>>>>" + ticket.get().getId());
 		ticketRepository.delete(ticket.get());
 	}
 
+	public Long getLastIndex() {
+		return ticketRepository.getLastIndex();
+	}
+
+	private String getSearchIndexParameter(int value) {
+		switch (value) {
+		case 1:
+			return "id";
+		case 2:
+			return "price";
+		case 3:
+			return "ticketStatus";
+		case 4:
+			return "stationName";
+		case 5:
+			return "stationMasterName";
+		case 6:
+			return "gateName";
+		case 7:
+			return "createrName";
+		case 8:
+			return "createdDate";
+		case 9:
+			return "issuerName";
+		case 10:
+			return "issuedDate";
+		case 11:
+			return "checkerName";
+		case 12:
+			return "checkedDate";
+		default:
+			throw new ServiceException("Please select appropriate searchValue");
+		}
+	}
+	private String getTicketSearchIndex(int value) {
+		switch (value) {
+		case 1:
+			return "id";
+		case 2:
+			return "price";
+		case 3:
+			return "uniqueId";
+		default:
+			throw new ServiceException("Please select appropriate searchValue");
+		}
+	}
 }

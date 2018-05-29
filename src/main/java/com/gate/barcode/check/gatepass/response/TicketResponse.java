@@ -5,6 +5,7 @@ public class TicketResponse {
 	private Long id;
 	private String barcode;
 	private String price;
+	private String uniqueId;
 	
 	public String getPrice() {
 		return price;
@@ -23,6 +24,12 @@ public class TicketResponse {
 	}
 	public void setBarcode(String barcode) {
 		this.barcode = barcode;
+	}
+	public String getUniqueId() {
+		return uniqueId;
+	}
+	public void setUniqueId(String uniqueId) {
+		this.uniqueId = uniqueId;
 	}
 	
 }

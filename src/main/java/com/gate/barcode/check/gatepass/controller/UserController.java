@@ -50,8 +50,8 @@ public class UserController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<Object> getAllUsers(@RequestParam(required=false)UserType userType) {
-		List<UserResponse> response = userService.getAllUsers(userType);
+	public ResponseEntity<Object> getAllUsers(@RequestHeader Long userId,@RequestParam(required=false)UserType userType) {
+		List<UserResponse> response = userService.getAllUsers(userId,userType);
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 }

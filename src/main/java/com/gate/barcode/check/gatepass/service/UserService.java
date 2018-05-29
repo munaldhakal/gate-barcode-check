@@ -155,7 +155,7 @@ public class UserService {
 	 * @since 11/04/2018
 	 */
 	@Transactional
-	public List<UserResponse> getAllUsers(UserType userType) {
+	public List<UserResponse> getAllUsers(Long userId,UserType userType) {
 		List<User> user=null;
 		if(userType==null)
 			user = userRepository.findAll();
@@ -166,6 +166,8 @@ public class UserService {
 			throw new ServiceException("Sorry no user found");
 		List<UserResponse> response = new ArrayList<>();
 		for(User u: user) {
+			if(u.getId()==userId)
+				continue;
 			response.add(getUserObj(u));
 		}
 		return response;

@@ -54,6 +54,7 @@ public class LoginService {
 		Map<Object, Object> response = new HashMap<>();
 		response.put("username", login.getUsername());
 		response.put("user", userService.getUser(login.getUserId()));
+//		response.put("userType", userService.getUser(login.getUserId()).getUserType());
 //		Gate gate = gateRepository.findByTicketChecker(userService.getUser(login.getUserId()).getId());
 //		Station station = stationRepository.findByStationMaster(userService.getUser(login.getUserId()).getId());
 //		if (gate != null)

@@ -24,26 +24,33 @@ public class Ticket implements Serializable {
 	private Long id;
 	private String barcode;
 	private Long createdBy;
+	private String createrName;
 	private String uniqueId;
 	private String price;
-	private Long stationMaster;
+	private Long stationMasterId;
+	private String stationMasterName;
 	private Long stationId;
+	private String stationName;
 	private Long gateId;
-	@Temporal(TemporalType.DATE)
+	private String gateName;
+	//@Temporal(TemporalType.DATE)
 	@Column(name = "createdDate")
-	private Date createdDate;
+	private String createdDate;
 	private Long modifiedBy;
-	@Temporal(TemporalType.DATE)
+	private String modifierName;
+	//@Temporal(TemporalType.DATE)
 	@Column(name = "modifiedDate")
-	private Date modifiedDate;
+	private String modifiedDate;
 	private Long issuedBy;
+	private String issuerName;
 	private Long checkedBy;
-	@Temporal(TemporalType.DATE)
+	private String checkerName;
+	//@Temporal(TemporalType.DATE)
 	@Column(name = "issuedDate")
-	private Date issuedDate;
-	@Temporal(TemporalType.DATE)
+	private String issuedDate;
+	//@Temporal(TemporalType.DATE)
 	@Column(name = "checkedDate")
-	private Date checkedDate;
+	private String checkedDate;
 	@Enumerated(EnumType.STRING)
 	private TicketStatus ticketStatus;
 
@@ -87,11 +94,11 @@ public class Ticket implements Serializable {
 		this.createdBy = createdBy;
 	}
 
-	public Date getCreatedDate() {
+	public String getCreatedDate() {
 		return createdDate;
 	}
 
-	public void setCreatedDate(Date createdDate) {
+	public void setCreatedDate(String createdDate) {
 		this.createdDate = createdDate;
 	}
 
@@ -103,11 +110,11 @@ public class Ticket implements Serializable {
 		this.modifiedBy = modifiedBy;
 	}
 
-	public Date getModifiedDate() {
+	public String getModifiedDate() {
 		return modifiedDate;
 	}
 
-	public void setModifiedDate(Date modifiedDate) {
+	public void setModifiedDate(String modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
 
@@ -119,12 +126,60 @@ public class Ticket implements Serializable {
 		this.ticketStatus = ticketStatus;
 	}
 
-	public Long getStationMaster() {
-		return stationMaster;
+	public Long getStationMasterId() {
+		return stationMasterId;
 	}
 
-	public void setStationMaster(Long stationMaster) {
-		this.stationMaster = stationMaster;
+	public void setStationMasterId(Long stationMasterId) {
+		this.stationMasterId = stationMasterId;
+	}
+
+	public String getStationMasterName() {
+		return stationMasterName;
+	}
+
+	public void setStationMasterName(String stationMasterName) {
+		this.stationMasterName = stationMasterName;
+	}
+
+	public String getStationName() {
+		return stationName;
+	}
+
+	public void setStationName(String stationName) {
+		this.stationName = stationName;
+	}
+
+	public String getGateName() {
+		return gateName;
+	}
+
+	public void setGateName(String gateName) {
+		this.gateName = gateName;
+	}
+
+	public String getModifierName() {
+		return modifierName;
+	}
+
+	public void setModifierName(String modifierName) {
+		this.modifierName = modifierName;
+	}
+
+	public String getIssuerName() {
+		return issuerName;
+	}
+
+	public void setIssuerName(String issuerName) {
+		this.issuerName = issuerName;
+	}
+
+	public String getCheckerName() {
+		return checkerName;
+	}
+
+	public void setCheckerName(String checkerName) {
+		this.checkerName = checkerName;
 	}
 
 	public Long getIssuedBy() {
@@ -143,19 +198,19 @@ public class Ticket implements Serializable {
 		this.checkedBy = checkedBy;
 	}
 
-	public Date getIssuedDate() {
+	public String getIssuedDate() {
 		return issuedDate;
 	}
 
-	public void setIssuedDate(Date issuedDate) {
+	public void setIssuedDate(String issuedDate) {
 		this.issuedDate = issuedDate;
 	}
 
-	public Date getCheckedDate() {
+	public String getCheckedDate() {
 		return checkedDate;
 	}
 
-	public void setCheckedDate(Date checkedDate) {
+	public void setCheckedDate(String checkedDate) {
 		this.checkedDate = checkedDate;
 	}
 
@@ -173,6 +228,14 @@ public class Ticket implements Serializable {
 
 	public void setGateId(Long gateId) {
 		this.gateId = gateId;
+	}
+
+	public String getCreaterName() {
+		return createrName;
+	}
+
+	public void setCreaterName(String createrName) {
+		this.createrName = createrName;
 	}
 	
 }
