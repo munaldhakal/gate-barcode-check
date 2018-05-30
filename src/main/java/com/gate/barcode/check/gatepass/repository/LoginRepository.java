@@ -24,5 +24,13 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
 	 * @since 11/04/2018
 	 */
 	Login findByUsernameAndPassword(String username, String password);
+	/**
+	 *<<Add description here>>
+	 * @param userId
+	 * @return
+	 * @author
+	 * @since , Modified In: @version, By @author
+	 */
+	Login findByUserId(Long userId);
 
 }

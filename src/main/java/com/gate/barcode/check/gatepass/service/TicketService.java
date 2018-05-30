@@ -248,7 +248,7 @@ public class TicketService {
 		if(request.getIdTo()>getLastIndex())
 			throw new ServiceException("Sorry. You cannot assign Ids which are not created. Please Check 'ID TO'");
 		commonService.checkUserType(userId);
-		Double count = Double.valueOf("0");
+		Integer count = 0;
 		for (Long i = request.getIdFrom(); i <= request.getIdTo(); i++) {
 			Ticket ticket = ticketRepository.findByIdAndTicketStatus(i, TicketStatus.UNVERIFIED);
 			if (ticket == null)
@@ -263,7 +263,7 @@ public class TicketService {
 			count++;
 			ticketRepository.save(ticket);
 		}
-		return new BigDecimal(String.valueOf(count)).toPlainString();
+		return String.valueOf(count);
 	}
 	
 	@Transactional

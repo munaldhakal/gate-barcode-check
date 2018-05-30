@@ -1,7 +1,9 @@
 package com.gate.barcode.check.gatepass.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -27,7 +29,8 @@ public class UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private LoginRepository loginRepository;
-
+	@Autowired
+	private CommonService commonService;
 	/**
 	 * This is the method to create the user
 	 * 
@@ -37,7 +40,7 @@ public class UserService {
 	 * @since 11/04/2018
 	 */
 	@Transactional
-	public void createUser(Long userId, UserDto userDto) {
+	public String createUser(Long userId, UserDto userDto) {
 		Optional<User> user = userRepository.findById(userId);
 		if (!user.isPresent())
 			throw new ServiceException("No user found of userid :" + userId);
@@ -59,8 +62,9 @@ public class UserService {
 		createLogin.setUsername(userDto.getUsername());
 		createLogin.setUserId(toCreate.getId());
 		createLogin.setLoginStatus(LoginStatus.LOGGEDOUT);
-		createLogin.setPassword(BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt()));
-		loginRepository.save(createLogin);
+		createLogin.setPassword(BCrypt.hashpw(userDto.getUsername(), BCrypt.gensalt()));
+		createLogin = loginRepository.save(createLogin);
+		return createLogin.getUsername();
 	}
 	/**
 	 * This method edits a user
@@ -171,5 +175,35 @@ public class UserService {
 			response.add(getUserObj(u));
 		}
 		return response;
+	}
+	/**
+	 *<<Add description here>>
+	 * @param userId
+	 * @param password
+	 * @author
+	 * @since , Modified In: @version, By @author
+	 */
+	public void changePassword(Long userId, String password) {
+		Login login = loginRepository.findByUserId(userId);
+		if(login==null)
+			throw new ServiceException("Sorry no users found");
+		login.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+		loginRepository.save(login);
+	}
+	/**
+	 *<<Add description here>>
+	 * @param id
+	 * @param userId
+	 * @param password
+	 * @author
+	 * @since , Modified In: @version, By @author
+	 */
+	public void resetPassword(Long id, Long userId, String password) {
+		commonService.checkUserType(userId);
+		Login login = loginRepository.findByUserId(id);
+		if(login==null)
+			throw new ServiceException("Sorry no users found to change the password");
+		login.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+		loginRepository.save(login);
 	}
 }

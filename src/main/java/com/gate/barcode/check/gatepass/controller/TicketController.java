@@ -110,10 +110,10 @@ public class TicketController {
 			@RequestBody AssignTicketsRequest request) {
 		String totalAssigned = ticketService.assignTickets(userId, request);
 		return new ResponseEntity<Object>(
-				"Successfully Assigned to: " + request.getStationMaster()+", Total "+totalAssigned+" tickets assigned.", HttpStatus.OK);
+				"Successfully Assigned, Total "+totalAssigned+" tickets assigned.", HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/deleteTickets", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/deleteTickets", method = RequestMethod.PUT)
 	public ResponseEntity<Object> deleteTickets(@RequestHeader Long userId,
 			@RequestBody DeleteTicketsRequest request) {
 		String totalDeleted = ticketService.deleteTickets(userId, request);
@@ -130,6 +130,7 @@ public class TicketController {
 		Map<Object, Object> response = ticketService.getReports(userId,search,searchValue,sort,page,size);
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
+	
 	@RequestMapping(value="/{id}",method=RequestMethod.DELETE)
 	public ResponseEntity<Object> deleteTicket(@RequestHeader Long userId,@PathVariable Long id){
 		commonService.checkUserType(userId);

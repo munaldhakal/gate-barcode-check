@@ -1,6 +1,7 @@
 package com.gate.barcode.check.gatepass.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,8 @@ public class UserController {
 
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Object> createUsers(@RequestHeader Long userId, @RequestBody UserDto userDto) {
-		userService.createUser(userId, userDto);
-		return new ResponseEntity<Object>("Successfully Created User", HttpStatus.OK);
+		String response = userService.createUser(userId, userDto);
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
@@ -53,5 +54,15 @@ public class UserController {
 	public ResponseEntity<Object> getAllUsers(@RequestHeader Long userId,@RequestParam(required=false)UserType userType) {
 		List<UserResponse> response = userService.getAllUsers(userId,userType);
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+	@RequestMapping(value="/changePassword",method = RequestMethod.PUT)
+	public ResponseEntity<Object> changePassword(@RequestHeader Long userId,@RequestParam(required = true) String password){
+		userService.changePassword(userId,password);
+		return new ResponseEntity<Object>("Sucessfully Changed",HttpStatus.OK);
+	}
+	@RequestMapping(value="/resetPassword/{id}",method = RequestMethod.PUT)
+	public ResponseEntity<Object> resetPassword(@RequestHeader Long userId,@PathVariable Long id,@RequestParam(required = true) String password){
+		userService.resetPassword(id,userId,password);
+		return new ResponseEntity<Object>("Reset Process Successful",HttpStatus.OK);
 	}
 }
